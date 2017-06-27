@@ -7,7 +7,7 @@ const cudo = {
                 let context = this;
 
                 this.handler.core.run(context)
-                    .catch(console.error(err));
+                    .catch(console.error);
             },
             handler: {
                 core: {
