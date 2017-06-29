@@ -1,9 +1,9 @@
 # cudo
 
-*Core package for Cudo, a distributed application framework*
+*Core package for CudoJS, a distributed application framework*
 
 ## Overview
-This package provides the core mechanics of a Cudo app. It enables creating and running of an app, and provides a structure for extending the app's functionality.
+This package provides the core mechanics of a CudoJS app. It enables creating and running of an app, and provides a structure for extending the app's functionality.
 
 ## Create and run an app
 In the most basic scenario, a new app can be created and run using the following:
@@ -13,6 +13,24 @@ const cudo = require("cudo");
 const app = cudo.init();
 
 app.run();
+```
+
+## App configuration
+`cudo.init()` method takes an optional `conf` argument, which is an object that can be used for specifying app configuration. The object can be accessed like so:
+```
+const app = cudo.init({
+	myConfSetting: "myConfSettingValue"
+});
+
+let myConfSetting = app.conf.myConfSetting;
+```
+
+## App context
+App context is an object containig data passed between handlers, functions responsible for operations performed by the app (read about handlers below). Context can be pre-set by passing an object to the app's `run()` method like so:
+```
+app.run({
+	contextProperty: "contextPropertyValue"
+});
 ```
 
 ## Add handlers
@@ -44,9 +62,9 @@ app.handler.myModule = {
 ```
 
 ## Call handlers
-All handlers for the given app object can be accessed within the `handler` property of the `context` argument passed to the handler. Thus, a call to `myModule.myHandler` can be made as follows:
+All handlers for the given app object can be accessed within the `handler` property of the app object. Thus, a call to `myModule.myHandler` can be made as follows:
 ```
-context.handler.myModule.myHandler(context)
+app.handler.myModule.myHandler(context);
 ```
 
 ## Modify handlers

@@ -1,14 +1,17 @@
 ﻿"use strict";
 
 const cudo = {
-    init() {
-        return {
-            run() {
-                let context = this;
+    init(conf) {
+        conf = (conf) ? conf : {};
 
-                this.handler.core.run(context)
+        return {
+            run(context) {
+                context = (context) ? context : {};
+
+                return this.handler.core.run(context)
                     .catch(console.error);
             },
+            conf: conf,
             handler: {
                 core: {
                     run: (context) => {

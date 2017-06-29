@@ -7,7 +7,9 @@ chai.use(chaiAsPromised);
 const cudo = require("../");
 
 describe("Basic checks", () => {
-    let app = cudo.init();
+    let app = cudo.init({
+        test: "test"
+    });
 
     it("App object can be created", () => {
         chai.assert.ok(app);
@@ -17,6 +19,10 @@ describe("Basic checks", () => {
         let runMethodExists = (typeof app.run === "function") ? true : false;
 
         chai.assert.ok(runMethodExists);
+    });
+
+    it("App can be run", () => {
+        return chai.assert.becomes(app.run({ test: "test" }), { test: "test" });
     });
 });
 
@@ -42,7 +48,35 @@ describe("Handlers", () => {
             }
         })(app.handler.core.run);
 
-        return chai.assert.becomes(app.handler.core.run({}), { test: "test" });
+        return chai.assert.becomes(app.run(), { test: "test" });
+    });
+});
+
+describe("App configuration", () => {
+    let app = cudo.init({
+        testconf: "testconf"
+    });
+
+    it("App configuration can be accessed from handlers", () => {
+        app.handler.core.run = ((existingHandler) => {
+            return (context) => {
+                return existingHandler(context)
+                    .then((context) => {
+                        return new Promise((resolve, reject) => {
+                            try {
+                                context.testconf = app.conf.testconf;
+
+                                resolve(context);
+                            }
+                            catch (err) {
+                                reject(err);
+                            }
+                        });
+                    });
+            }
+        })(app.handler.core.run);
+
+        return chai.assert.becomes(app.run(), { testconf: "testconf" });
     });
 });
 
