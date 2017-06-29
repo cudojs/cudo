@@ -1,9 +1,9 @@
 # cudo
 
-*Core package for CudoJS, a distributed application framework*
+*Core package for Cudo, a distributed application framework*
 
 ## Overview
-This package provides the core mechanics of a CudoJS app. It enables creating and running of an app, and provides a structure for extending the app's functionality.
+This package provides the core mechanics of a Cudo app. It enables creating and running of an app, and provides a structure for extending the app's functionality.
 
 ## Create and run an app
 In the most basic scenario, a new app can be created and run using the following:

@@ -2,7 +2,7 @@
     "name": "cudo",
     "version": "0.2.0",
     "repository": "cudojs/cudo",
-    "description": "Core package for CudoJS, a distributed application framework",
+    "description": "Core package for Cudo, a distributed application framework",
     "author": {
         "name": "Marek Maciusowicz",
         "email": "m.maciusowicz@cudojs.com",
