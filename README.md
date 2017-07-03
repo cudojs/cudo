@@ -15,23 +15,15 @@ const app = cudo.init();
 app.run();
 ```
 
-## App configuration
-`cudo.init()` method takes an optional `conf` argument, which is an object that can be used for specifying app configuration. The object can be accessed like so:
-```
-const app = cudo.init({
-	myConfSetting: "myConfSettingValue"
-});
-
-let myConfSetting = app.conf.myConfSetting;
-```
-
-## App context
-App context is an object containig data passed between handlers, functions responsible for operations performed by the app (read about handlers below). Context can be pre-set by passing an object to the app's `run()` method like so:
+## Set application context
+Application context is an object containig data passed between handlers, functions responsible for operations performed by the app (read about handlers below). Context can be pre-set by passing an object to the app's `run()` method like so:
 ```
 app.run({
 	contextProperty: "contextPropertyValue"
 });
 ```
+
+As of version 0.3.0 it is recommended that configuration parameters for a given app run are stored in `context.conf`.
 
 ## Add handlers
 Handlers are functions providing app functionality beyond the creation and running of the app. 
