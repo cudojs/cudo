@@ -31,7 +31,8 @@ const conf = {
 Similarly, setting core configuration properties, they *must* be added within `core` scope object.
 
 The following core configuration properties are available:
-- myHandlersDirPath - Allows specifying where the auto-loader should look for handlers.
+- handlersAutoLoad - boolean - Determines whether to run auto-loader. Defaults to `true`.
+- handlersDirPath - string - Allows specifying where the auto-loader should look for handlers. Defaults to `./handlers`.
 
 ## Setting runtime context
 Runtime context is an object containig data passed between handlers, functions responsible for operations performed by the app (read about handlers below). Context can be pre-set by passing an object to the app's `run()` method like so:
