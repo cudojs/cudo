@@ -95,7 +95,12 @@ app.handlers.myComponent = {
 ## Calling handlers
 All handlers for the given app object can be accessed within the `handlers` property of the `context` object. Thus, a call to `myComponent.myHandler` can be made as follows:
 ```
-context.handler.myComponent.myHandler(context);
+context.handlers.myComponent.myHandler(context);
+```
+
+Alternatively, if app object is available, handlers can be accessed from this object, like so:
+```
+app.handlers.myComponent.myHandler(context);
 ```
 
 ## Modifying handlers
@@ -112,11 +117,11 @@ let myHandler = (context) => {
     });
 }
 
-app.handler.core.run = ((existingHandler) => {
+app.handlers.core.run = ((existingHandler) => {
     return (context) => {
         return existingHandler(context)
             .then(myHandler);
     }
-})(app.handler.core.run);
+})(app.handlers.core.run);
 ```
 In this example we have extended the functionality of the `core.run` handler by appending `myHandler` to the existing promise.
