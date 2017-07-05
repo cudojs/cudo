@@ -1,70 +1,112 @@
-﻿let chai = require("chai");
+﻿const chai = require("chai");
 
-let chaiAsPromised = require("chai-as-promised");
+const chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
 
 const cudo = require("../");
 
+const conf = {
+    core: {
+        handlersDirPath: "./test/handlers"
+    }
+};
+
 describe("Basic checks", () => {
-    let app = cudo.init({
-        test: "test"
-    });
-
     it("App object can be created", () => {
-        chai.assert.ok(app);
+        return chai.assert.isFulfilled(cudo.init(conf));
     });
 
-    it("Run method exists", () => {
-        let runMethodExists = (typeof app.run === "function") ? true : false;
-
-        chai.assert.ok(runMethodExists);
+    it("App object has method run()", () => {
+        return chai.expect(cudo.init(conf)).to.eventually.haveOwnProperty("run");
     });
 
     it("App can be run", () => {
-        return chai.assert.becomes(app.run({ test: "test" }), { test: "test" });
+        return chai.expect(cudo.init(conf)
+            .then((app) => {
+                return app.run();
+            }))
+            .eventually.property("data")
+            .become({});
+    });
+
+    it("Context data can be pre-set", () => {
+        return chai.expect(cudo.init(conf)
+            .then((app) => {
+                return app.run({test: "test"});
+            }))
+            .eventually.property("data")
+            .become({test: "test"});
     });
 });
 
 describe("Handlers", () => {
-    let app = cudo.init();
-
     it("Run handler can be extended", () => {
-        app.handler.core.run = ((existingHandler) => {
-            return (context) => {
-                return existingHandler(context)
-                    .then((context) => {
-                        return new Promise((resolve, reject) => {
-                            try {
-                                context.test = "test";
+        return chai.expect(cudo.init(conf)
+            .then((app) => {
+                app.handlers.core.run = ((existingHandler) => {
+                    return (context) => {
+                        return existingHandler(context)
+                            .then((context) => {
+                                return new Promise((resolve, reject) => {
+                                    try {
+                                        context.data.test = "test";
 
-                                resolve(context);
-                            }
-                            catch (err) {
-                                reject(err);
-                            }
-                        });
-                    });
-            }
-        })(app.handler.core.run);
+                                        resolve(context);
+                                    }
+                                    catch (err) {
+                                        reject(err);
+                                    }
+                                });
+                            });
+                    }
+                })(app.handlers.core.run);
 
-        return chai.assert.becomes(app.run(), { test: "test" });
+                return app.run();
+            }))
+            .eventually.property("data")
+            .become({test: "test"});
+    });
+
+    it("Handlers can be auto-loaded", () => {
+        return chai.expect(cudo.init(conf))
+            .eventually.property("handlers")
+            .property("test")
+            .property("autoLoadTest");
     });
 });
 
 describe("Multiple app objects", () => {
-    let app1 = cudo.init();
-
-    let app2 = cudo.init();
-
     it("Handlers are not shared between app objects", () => {
-        app1.handler.myModule = {
-            myHandler: (context) => { }
-        };
+        return chai.expect(cudo.init(conf)
+            .then((app) => {
+                app.handlers.core.run = ((existingHandler) => {
+                    return (context) => {
+                        return existingHandler(context)
+                            .then((context) => {
+                                return new Promise((resolve, reject) => {
+                                    try {
+                                        context.data.test = "test";
 
-        let handlerIsNotShared = (app2.handler.myModule
-            && app2.handler.myModule.myHandler) ? false : true;
+                                        resolve(context);
+                                    }
+                                    catch (err) {
+                                        reject(err);
+                                    }
+                                });
+                            });
+                    }
+                })(app.handlers.core.run);
 
-        chai.assert.ok(handlerIsNotShared);
+                return app.run();
+            })
+            .then(() => {
+                return cudo.init(conf);
+            })
+            .then((app) => {
+                return app.run();
+            }))
+            .eventually.property("data")
+            .become({});
     });
 });

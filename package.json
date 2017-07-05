@@ -1,6 +1,6 @@
 {
     "name": "cudo",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "repository": "cudojs/cudo",
     "description": "Core package for Cudo, a distributed application framework",
     "author": {
@@ -9,13 +9,15 @@
         "url": "http://www.cudojs.com"
     },
     "license": "BSD-2-Clause",
+    "dependencies": {
+        "recursive-readdir": "^2.2.1"
+    },
     "devDependencies": {
         "chai": "^4.0.2",
-        "chai-as-promised": "^7.0.0",
+        "chai-as-promised": "^7.1.1",
         "mocha": "^3.4.2"
     },
     "scripts": {
         "test": "mocha"
-    },
-    "dependencies": {}
+    }
 }
