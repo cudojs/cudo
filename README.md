@@ -10,7 +10,15 @@ In the most basic scenario, a new app can be created and run using the following
 ```
 const cudo = require("cudo");
 
-cudo.init()
+// Set auto-loader to false, to avoid requirement for a handlers directory to exist.
+const conf = {
+    core: {
+        handlersAuto: false
+    }
+};
+
+// Initialise and run an app.
+cudo.init(conf)
     .then((app) => {
         return app.run();
     });
