@@ -13,7 +13,7 @@ const cudo = require("cudo");
 // Set auto-loader to false, to avoid requirement for a handlers directory to exist.
 const conf = {
     core: {
-        handlersAuto: false
+        handlersAutoLoad: false
     }
 };
 
