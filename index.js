@@ -7,12 +7,6 @@ const cudo = {
         // Ensure required configuration properties are present.
         conf = (typeof conf === "object") ? conf : {};
 
-        conf.core = (typeof conf.core === "object") ? conf.core : {};
-
-        conf.core.handlersAutoLoad = (typeof conf.core.handlersAutoLoad !== "undefined") ? conf.core.handlersAutoLoad : true;
-
-        conf.core.handlersDirPath = (typeof conf.core.handlersDirPath === "string") ? conf.core.handlersDirPath : "./handlers";
-
         // Define app object.
         let app = {
             run(data) {
@@ -40,13 +34,42 @@ const cudo = {
             }
         };
 
+        // Extract handler auto-loader settings.
+        let autoLoadDisabled = false;
+
+        let handlerPaths = null;
+
+        if (typeof conf.core === "object"
+            && typeof conf.core.handlers === "object") {
+            if (conf.core.handlers.autoLoadDisabled === true) {
+                autoLoadDisabled = true;
+            }
+
+            if (Array.isArray(conf.core.handlers.paths)) {
+                handlerPaths = conf.core.handlers.paths;
+            }
+        }
+
         // Auto-load handlers and return app object.
-        if (conf.core.handlersAutoLoad) {
-            return recursiveReaddir(conf.core.handlersDirPath)
-                .then((files) => {
+        if (handlerPaths
+            && !autoLoadDisabled) {
+            let readDirPromises = [];
+
+            for (let i = 0; i < handlerPaths.length; i++) {
+                readDirPromises.push(recursiveReaddir(handlerPaths[i]));
+            }
+
+            return Promise.all(readDirPromises)
+                .then((fileSets) => {
+                    let files = [];
+                    
+                    for (let i = 0; i < fileSets.length; i++) {
+                        files = files.concat(fileSets[i]);
+                    }
+
                     return new Promise((resolve, reject) => {
                         for (let i = 0; i < files.length; i++) {
-                            let handlerWrapper = require("./" + files[i]);
+                            let handlerWrapper = require(files[i]);
 
                             if (handlerWrapper.scope.component
                                 && handlerWrapper.scope.name

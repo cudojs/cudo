@@ -10,15 +10,8 @@ In the most basic scenario, a new app can be created and run using the following
 ```
 const cudo = require("cudo");
 
-// Set auto-loader to false, to avoid requirement for a handlers directory to exist.
-const conf = {
-    core: {
-        handlersAutoLoad: false
-    }
-};
-
 // Initialise and run an app.
-cudo.init(conf)
+cudo.init()
     .then((app) => {
         return app.run();
     });
@@ -30,20 +23,38 @@ Configuration properties for the given app object can be set by passing a config
 Configuration properties *must* be scoped using a component identifier, like so:
 ```
 const conf = {
-    myModule: {
+    myComponent: {
         myConfProperty: "myConfPropertyValue"
     }
 }
 ```
 
-Similarly, setting core configuration properties, they *must* be added within `core` scope object.
+The `core` component allows specifying the following:
+- `core.handlers.autoLoadDisabled` - boolean - if true, auto-loading handlers is disabled, regardless of `core.handlers.paths`
+- `core.handlers.paths` - array - specifies directories where auto-loader looks for handlers
 
-The following core configuration properties are available:
-- handlersAutoLoad - boolean - Determines whether to run auto-loader. Defaults to `true`.
-- handlersDirPath - string - Allows specifying where the auto-loader should look for handlers. Defaults to `./handlers`.
+A path for auto-loader lookup can be added like so:
+```
+// Define configuration.
+const conf = {
+    core: {
+        handlers: {
+            paths: [
+                fs.realpathSync(__dirname + "/handlers")
+            ]
+        }
+    }
+};
+
+// Initialise and run an app.
+cudo.init(conf)
+    .then((app) => {
+        return app.run();
+    });
+```
 
 ## Setting runtime context
-Runtime context is an object containig data passed between handlers, functions responsible for operations performed by the app (read about handlers below). Context can be pre-set by passing an object to the app's `run()` method like so:
+Runtime context is an object containig data passed between handlers. Context can be pre-set by passing an object to the app's `run()` method like so:
 ```
 app.run({
     contextProperty: "contextPropertyValue"

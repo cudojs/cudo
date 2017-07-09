@@ -6,23 +6,29 @@ chai.use(chaiAsPromised);
 
 const cudo = require("../");
 
+const fs = require("fs");
+
 const conf = {
     core: {
-        handlersDirPath: "./test/handlers"
+        handlers: {
+            paths: [
+                fs.realpathSync(__dirname + "/handlers")
+            ]
+        }
     }
 };
 
 describe("Basic checks", () => {
     it("App object can be created", () => {
-        return chai.assert.isFulfilled(cudo.init(conf));
+        return chai.assert.isFulfilled(cudo.init());
     });
 
     it("App object has method run()", () => {
-        return chai.expect(cudo.init(conf)).to.eventually.haveOwnProperty("run");
+        return chai.expect(cudo.init()).to.eventually.haveOwnProperty("run");
     });
 
     it("App can be run", () => {
-        return chai.expect(cudo.init(conf)
+        return chai.expect(cudo.init()
             .then((app) => {
                 return app.run();
             }))
@@ -31,7 +37,7 @@ describe("Basic checks", () => {
     });
 
     it("Context data can be pre-set", () => {
-        return chai.expect(cudo.init(conf)
+        return chai.expect(cudo.init()
             .then((app) => {
                 return app.run({test: "test"});
             }))
@@ -42,7 +48,7 @@ describe("Basic checks", () => {
 
 describe("Handlers", () => {
     it("Run handler can be extended", () => {
-        return chai.expect(cudo.init(conf)
+        return chai.expect(cudo.init()
             .then((app) => {
                 app.handlers.core.run = ((existingHandler) => {
                     return (context) => {
@@ -73,6 +79,16 @@ describe("Handlers", () => {
             .eventually.property("handlers")
             .property("test")
             .property("autoLoadTest");
+    });
+
+    it("Auto-loader can be disabled", () => {
+        let confAutoLoadDisabled = conf;
+
+        confAutoLoadDisabled.core.handlers.autoLoadDisabled = true;
+
+        return chai.expect(cudo.init(confAutoLoadDisabled))
+            .eventually.property("handlers")
+            .not.property("test");
     });
 });
 
