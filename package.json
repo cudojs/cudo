@@ -1,6 +1,6 @@
 {
     "name": "cudo",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "repository": "cudojs/cudo",
     "description": "Core package for Cudo, a distributed application framework",
     "author": {
