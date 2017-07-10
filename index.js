@@ -79,7 +79,16 @@ const cudo = {
                                     app.handlers[handlerWrapper.scope.component] = {};
                                 }
 
-                                app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.name] = handlerWrapper.handler;
+                                if (typeof handlerWrapper.scope.group === "string") {
+                                    if (typeof app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.group] !== "object") {
+                                        app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.group] = {};
+                                    }
+
+                                    app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.group][handlerWrapper.scope.name] = handlerWrapper.handler;
+                                }
+                                else {
+                                    app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.name] = handlerWrapper.handler;
+                                }
                             }
                         }
 

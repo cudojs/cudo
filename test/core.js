@@ -81,6 +81,14 @@ describe("Handlers", () => {
             .property("autoLoadTest");
     });
 
+    it("Handlers can be divided into groups", () => {
+        return chai.expect(cudo.init(conf))
+            .eventually.property("handlers")
+            .property("test")
+            .property("testGroup")
+            .property("autoLoadTest");
+    });
+
     it("Auto-loader can be disabled", () => {
         let confAutoLoadDisabled = conf;
 

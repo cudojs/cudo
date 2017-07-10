@@ -95,6 +95,8 @@ module.exports.handler = (context) => {
 };
 ```
 
+Optionally, the scope object can also have a `group` property. Adding it will result in the handler being available within `myComponent.myGroup.myHandler`.
+
 ## Adding handlers manually
 A basic handler can be added manually as follows:
 ```
