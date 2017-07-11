@@ -2,6 +2,8 @@
 
 *Core package for Cudo, a distributed application framework*
 
+[![Build Status](https://travis-ci.org/cudojs/cudo.svg?branch=master)](https://travis-ci.org/cudojs/cudo)
+
 ## Overview
 This package provides the core mechanics of a Cudo app. It enables creating and running of an app, and provides a structure for extending the app's functionality.
 
