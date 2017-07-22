@@ -1,3 +1,5 @@
 ﻿language: node_js
 node_js:
     - "node"
+after_success:
+	- npm run coveralls
