@@ -3,12 +3,13 @@
     "version": "0.5.4",
     "repository": "cudojs/cudo",
     "description": "Core package for Cudo, a distributed application framework",
+    "keywords": ["framework", "distributed"],
+    "license": "BSD-2-Clause",
     "author": {
         "name": "Marek Maciusowicz",
         "email": "m.maciusowicz@cudojs.com",
         "url": "http://www.cudojs.com"
     },
-    "license": "BSD-2-Clause",
     "dependencies": {
         "recursive-readdir": "^2.2.1"
     },
