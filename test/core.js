@@ -12,7 +12,7 @@ const conf = {
     core: {
         handlers: {
             paths: [
-                fs.realpathSync(__dirname + "/handlers")
+                fs.realpathSync(__dirname + "/.aux/handlers")
             ]
         }
     }
