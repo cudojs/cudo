@@ -2,7 +2,7 @@
 
 *Core package for Cudo, a distributed application framework*
 
-[![Build Status](https://travis-ci.org/cudojs/cudo.svg?branch=master)](https://travis-ci.org/cudojs/cudo) [![Coverage Status](https://coveralls.io/repos/github/cudojs/cudo/badge.svg?branch=feature%2Fcoveralls)](https://coveralls.io/github/cudojs/cudo?branch=feature%2Fcoveralls)
+[![Build Status](https://travis-ci.org/cudojs/cudo.svg?branch=master)](https://travis-ci.org/cudojs/cudo) [![Coverage Status](https://coveralls.io/repos/github/cudojs/cudo/badge.svg?branch=master)](https://coveralls.io/github/cudojs/cudo?branch=master)
 
 ## Overview
 This package provides the core mechanics of a Cudo app. It enables creating and running of an app, and provides a structure for extending the app's functionality.
