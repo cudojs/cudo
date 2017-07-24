@@ -4,8 +4,8 @@
     name: "autoLoadTest"
 }
 
-module.exports.handler = (context) => {
+module.exports.handler = (app) => {
     return new Promise((resolve) => {
-        resolve(context);
+        resolve(app);
     });
 };

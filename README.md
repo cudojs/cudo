@@ -55,21 +55,23 @@ cudo.init(conf)
     });
 ```
 
-## Setting runtime context
-Runtime context is an object containig data passed between handlers. Context can be pre-set by passing an object to the app's `run()` method like so:
+## Pre-setting app data
+App data can be pre-set by passing an object to the app's `run()` method like so:
 ```
 app.run({
-    contextProperty: "contextPropertyValue"
+    myProperty: "myValue"
 });
 ```
+
+App data can be accessed via `app.data.myProperty`.
 
 ## Working with handlers
 Handlers are functions providing app functionality beyond the creation and running of the app. 
 
 Handlers **must**:
 - return a promise
-- take a `context` argument
-- pass the received `context` variable as an argument to the `resolve()` function
+- take an `app` argument, which is a reference to the app object
+- pass the received `app` object reference as an argument to the `resolve()` function
 - be always scoped using a component identifier, e.g. `app.handlers.myComponent.myHandler`
 
 Handlers **should**:
@@ -85,10 +87,10 @@ module.exports.scope = {
     name: "myHandler"
 };
 
-module.exports.handler = (context) => {
+module.exports.handler = (app) => {
     return new Promise(resolve, reject) {
         try {
-            resolve(context);
+            resolve(app);
         }
         catch (err) {
             reject(err);
@@ -103,10 +105,10 @@ Optionally, the scope object can also have a `group` property. Adding it will re
 A basic handler can be added manually as follows:
 ```
 app.handlers.myComponent = {
-    myHandler: (context) => {
+    myHandler: (app) => {
         return new Promise(resolve, reject) {
             try {
-                resolve(context);
+                resolve(app);
             }
             catch (err) {
                 reject(err);
@@ -117,23 +119,18 @@ app.handlers.myComponent = {
 ```
 
 ## Calling handlers
-All handlers for the given app object can be accessed within the `handlers` property of the `context` object. Thus, a call to `myComponent.myHandler` can be made as follows:
+All handlers for the given app object can be accessed within the `handlers` property of the app object. Thus, a call to `myComponent.myHandler` can be made as follows:
 ```
-context.handlers.myComponent.myHandler(context);
-```
-
-Alternatively, if app object is available, handlers can be accessed from this object, like so:
-```
-app.handlers.myComponent.myHandler(context);
+app.handlers.myComponent.myHandler(app);
 ```
 
 ## Modifying handlers
 Handlers can be overwritten by assigning a different function in place of the existing handler. To reuse the existing handler within the new function, place the new function in a wrapper like so:
 ```
-let myHandler = (context) => {
+let myHandler = (app) => {
     return new Promise((resolve, reject) => {
         try {
-            resolve(context);
+            resolve(app);
         }
         catch (err) {
             reject(err);
@@ -142,8 +139,8 @@ let myHandler = (context) => {
 }
 
 app.handlers.core.run = ((existingHandler) => {
-    return (context) => {
-        return existingHandler(context)
+    return (app) => {
+        return existingHandler(app)
             .then(myHandler);
     }
 })(app.handlers.core.run);

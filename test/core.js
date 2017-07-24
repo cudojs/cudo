@@ -36,7 +36,7 @@ describe("Basic checks", () => {
             .become({});
     });
 
-    it("Context data can be pre-set", () => {
+    it("App data can be pre-set", () => {
         return chai.expect(cudo.init()
             .then((app) => {
                 return app.run({test: "test"});
@@ -51,14 +51,14 @@ describe("Handlers", () => {
         return chai.expect(cudo.init()
             .then((app) => {
                 app.handlers.core.run = ((existingHandler) => {
-                    return (context) => {
-                        return existingHandler(context)
-                            .then((context) => {
+                    return (app) => {
+                        return existingHandler(app)
+                            .then((app) => {
                                 return new Promise((resolve, reject) => {
                                     try {
-                                        context.data.test = "test";
+                                        app.data.test = "test";
 
-                                        resolve(context);
+                                        resolve(app);
                                     }
                                     catch (err) {
                                         reject(err);
@@ -105,14 +105,14 @@ describe("Multiple app objects", () => {
         return chai.expect(cudo.init(conf)
             .then((app) => {
                 app.handlers.core.run = ((existingHandler) => {
-                    return (context) => {
-                        return existingHandler(context)
-                            .then((context) => {
+                    return (app) => {
+                        return existingHandler(app)
+                            .then((app) => {
                                 return new Promise((resolve, reject) => {
                                     try {
-                                        context.data.test = "test";
+                                        app.data.test = "test";
 
-                                        resolve(context);
+                                        resolve(app);
                                     }
                                     catch (err) {
                                         reject(err);

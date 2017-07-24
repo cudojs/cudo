@@ -10,20 +10,18 @@ const cudo = {
         // Define app object.
         let app = {
             run(data) {
-                let context = this;
+                this.data = (typeof data === "object") ? data : {};
 
-                context.data = (typeof data === "object") ? data : {};
-
-                return context.handlers.core.run(context)
+                return this.handlers.core.run(this)
                     .catch(console.error);
             },
             conf: conf,
             handlers: {
                 core: {
-                    run: (context) => {
+                    run: (app) => {
                         return new Promise((resolve, reject) => {
                             try {
-                                resolve(context);
+                                resolve(app);
                             }
                             catch (err) {
                                 reject(err);
