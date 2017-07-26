@@ -55,23 +55,33 @@ cudo.init(conf)
     });
 ```
 
-## Pre-setting app data
-App data can be pre-set by passing an object to the app's `run()` method like so:
+## Working with contexts
+Contexts used to pass data and a reference to the app object between the app's functions. When an app is run, a default context, called root context, is created.
+
+Context data is stored within `context.data` property, while the app object can be accessed via `context.app` property.
+
+To limit the amount of data passed between functions, and to better control which data is available to which parts of the application, child contexts can be created. A child contexts can be passed to a nested promise chain, making it available only to that chain.
+
+A child context can be created like so:
+```
+let childContext = context.app.contextCreate(context);
+```
+
+## Pre-setting root context data
+Root context data can be pre-set by passing an object to the app's `run()` method like so:
 ```
 app.run({
     myProperty: "myValue"
 });
 ```
 
-App data can be accessed via `app.data.myProperty`.
-
 ## Working with handlers
 Handlers are functions providing app functionality beyond the creation and running of the app. 
 
 Handlers **must**:
 - return a promise
-- take an `app` argument, which is a reference to the app object
-- pass the received `app` object reference as an argument to the `resolve()` function
+- take an `context` argument
+- pass the received `context` object as an argument to the `resolve()` function
 - be always scoped using a component identifier, e.g. `app.handlers.myComponent.myHandler`
 
 Handlers **should**:
@@ -87,14 +97,9 @@ module.exports.scope = {
     name: "myHandler"
 };
 
-module.exports.handler = (app) => {
-    return new Promise(resolve, reject) {
-        try {
-            resolve(app);
-        }
-        catch (err) {
-            reject(err);
-        }
+module.exports.handler = (context) => {
+    return new Promise(resolve) {
+        resolve(context);
     };
 };
 ```
@@ -105,42 +110,32 @@ Optionally, the scope object can also have a `group` property. Adding it will re
 A basic handler can be added manually as follows:
 ```
 app.handlers.myComponent = {
-    myHandler: (app) => {
-        return new Promise(resolve, reject) {
-            try {
-                resolve(app);
-            }
-            catch (err) {
-                reject(err);
-            }
+    myHandler: (context) => {
+        return new Promise(resolve) {
+            resolve(context);
         }
     };
 };
 ```
 
 ## Calling handlers
-All handlers for the given app object can be accessed within the `handlers` property of the app object. Thus, a call to `myComponent.myHandler` can be made as follows:
+All handlers for the given app object can be accessed within the `handlers` property of the `context.app` object. Thus, a call to `myComponent.myHandler` can be made as follows:
 ```
-app.handlers.myComponent.myHandler(app);
+context.app.handlers.myComponent.myHandler(context);
 ```
 
 ## Modifying handlers
 Handlers can be overwritten by assigning a different function in place of the existing handler. To reuse the existing handler within the new function, place the new function in a wrapper like so:
 ```
-let myHandler = (app) => {
-    return new Promise((resolve, reject) => {
-        try {
-            resolve(app);
-        }
-        catch (err) {
-            reject(err);
-        }
+let myHandler = (context) => {
+    return new Promise((resolve) => {
+        resolve(context);
     });
 }
 
 app.handlers.core.run = ((existingHandler) => {
-    return (app) => {
-        return existingHandler(app)
+    return (context) => {
+        return existingHandler(context)
             .then(myHandler);
     }
 })(app.handlers.core.run);
