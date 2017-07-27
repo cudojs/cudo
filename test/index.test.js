@@ -79,11 +79,11 @@ describe("Handlers", () => {
             .property("autoLoadTest");
     });
 
-    it("Handlers can be divided into groups", () => {
+    it("Handlers in subfolders are loaded to relevat places in object tree", () => {
         return chai.expect(cudo.init(conf))
             .eventually.property("handlers")
             .property("test")
-            .property("testGroup")
+            .property("testSubfolder")
             .property("autoLoadTest");
     });
 

@@ -88,23 +88,18 @@ Handlers **should**:
 - reject a promise, passing an error message as an argument to the `reject()` function
 
 ## Auto-loading handlers
-Upon running `cudo.init()` an auto-load mechanism will be triggered, which will attempt to load handlers from files in `./handlers` directory. The lookup directory can be modified by setting `conf.core.handlersDirPath` property and passing the configuration in `cudo.init()`. 
+Upon running `cudo.init()` an auto-load mechanism will be triggered, which will attempt to load handlers within directories specified in `conf.core.handlers.path` setting. 
+
+Handlers will be placed into nested objects, based on their path, relative to the lookup directory. Thus a handler with a relative path `test/auto-load-test.js` will be placed in `app.handlers.test.autoLoadTest`.
 
 For a handler to be properly detected and auto loaded, it must export the following:
 ```
-module.exports.scope = {
-    component: "myComponent",
-    name: "myHandler"
-};
-
 module.exports.handler = (context) => {
     return new Promise(resolve) {
         resolve(context);
     };
 };
 ```
-
-Optionally, the scope object can also have a `group` property. Adding it will result in the handler being available within `myComponent.myGroup.myHandler`.
 
 ## Adding handlers manually
 A basic handler can be added manually as follows:

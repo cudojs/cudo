@@ -1,5 +1,9 @@
 ﻿"use strict";
 
+const camelcase = require("camelcase");
+
+const path = require("path");
+
 const recursiveReaddir = require("recursive-readdir");
 
 const cudo = {
@@ -22,6 +26,84 @@ const cudo = {
 
                 return context;
             },
+            handlersAutoLoad() {
+                let app = this;
+
+                // Extract handler auto-loader settings.
+
+                let autoLoadDisabled = false;
+
+                let handlerPaths = null;
+
+                if (app.conf.core && app.conf.core.handlers) {
+                    if (app.conf.core.handlers.autoLoadDisabled !== true) {
+                        if (Array.isArray(app.conf.core.handlers.paths)) {
+                            handlerPaths = app.conf.core.handlers.paths;
+
+                            return app.handlersLoad(handlerPaths).then(() => {
+                                return new Promise((resolve) => {
+                                    resolve(app);
+                                });
+                            });
+                        }
+                    }
+                }
+
+                // If criteria for auto-load were not met, return promise with app object.
+                return new Promise((resolve) => {
+                    resolve(app);
+                });
+            },
+            handlersLoad(handlerDirPaths) {
+                let readDirPromises = [];
+
+                for (let i = 0; i < handlerDirPaths.length; i++) {
+                    let handlerDirPath = handlerDirPaths[i];
+
+                    readDirPromises.push(recursiveReaddir(handlerDirPath)
+                        .then((fileSets) => {
+                            let files = [];
+
+                            for (let i = 0; i < fileSets.length; i++) {
+                                files = files.concat(fileSets[i]);
+                            }
+
+                            return new Promise((resolve) => {
+                                for (let i = 0; i < files.length; i++) {
+                                    let filePath = files[i];
+
+                                    let fileRelativePath = path.relative(handlerDirPath, filePath);
+
+                                    let filePathChunks = fileRelativePath.split(path.sep);
+
+                                    let cursor = app.handlers;
+
+                                    for (let i2 = 0; i2 < filePathChunks.length; i2++) {
+                                        let chunkCamelCase = camelcase(filePathChunks[i2]);
+
+                                        if (i2 + 1 < filePathChunks.length) {
+                                            if (typeof cursor[chunkCamelCase] === "undefined") {
+                                                cursor[chunkCamelCase] = {};
+                                            }
+
+                                            cursor = cursor[chunkCamelCase];
+                                        }
+                                    }
+
+                                    let fileExt = path.extname(filePath);
+
+                                    let basenameCamelCase = camelcase(path.basename(filePath, fileExt))
+
+                                    cursor[basenameCamelCase] = require(filePath);
+                                }
+
+                                resolve();
+                            });
+                        }));
+                }
+
+                return Promise.all(readDirPromises);
+            },
             run(data) {
                 let context = this.contextCreateSync(null, data);
 
@@ -40,73 +122,8 @@ const cudo = {
             }
         };
 
-        // Extract handler auto-loader settings.
-        let autoLoadDisabled = false;
-
-        let handlerPaths = null;
-
-        if (typeof conf.core === "object"
-            && typeof conf.core.handlers === "object") {
-            if (conf.core.handlers.autoLoadDisabled === true) {
-                autoLoadDisabled = true;
-            }
-
-            if (Array.isArray(conf.core.handlers.paths)) {
-                handlerPaths = conf.core.handlers.paths;
-            }
-        }
-
-        // Auto-load handlers and return app object.
-        if (handlerPaths
-            && !autoLoadDisabled) {
-            let readDirPromises = [];
-
-            for (let i = 0; i < handlerPaths.length; i++) {
-                readDirPromises.push(recursiveReaddir(handlerPaths[i]));
-            }
-
-            return Promise.all(readDirPromises)
-                .then((fileSets) => {
-                    let files = [];
-
-                    for (let i = 0; i < fileSets.length; i++) {
-                        files = files.concat(fileSets[i]);
-                    }
-
-                    return new Promise((resolve) => {
-                        for (let i = 0; i < files.length; i++) {
-                            let handlerWrapper = require(files[i]);
-
-                            if (handlerWrapper.scope.component
-                                && handlerWrapper.scope.name
-                                && handlerWrapper.handler
-                                && handlerWrapper.scope.component !== "core") {
-                                if (typeof app.handlers[handlerWrapper.scope.component] !== "object") {
-                                    app.handlers[handlerWrapper.scope.component] = {};
-                                }
-
-                                if (typeof handlerWrapper.scope.group === "string") {
-                                    if (typeof app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.group] !== "object") {
-                                        app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.group] = {};
-                                    }
-
-                                    app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.group][handlerWrapper.scope.name] = handlerWrapper.handler;
-                                }
-                                else {
-                                    app.handlers[handlerWrapper.scope.component][handlerWrapper.scope.name] = handlerWrapper.handler;
-                                }
-                            }
-                        }
-
-                        resolve(app);
-                    });
-                });
-        }
-        else {
-            return new Promise((resolve) => {
-                resolve(app);
-            });
-        }
+        return app.handlersAutoLoad()
+            .catch(console.error);
     }
 };
 

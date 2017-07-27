@@ -1,9 +1,12 @@
 {
     "name": "cudo",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "repository": "cudojs/cudo",
     "description": "Core package for Cudo, a distributed application framework",
-    "keywords": [ "framework", "distributed" ],
+    "keywords": [
+        "framework",
+        "distributed"
+    ],
     "license": "BSD-2-Clause",
     "author": {
         "name": "Marek Maciusowicz",
@@ -11,9 +14,10 @@
         "url": "http://www.cudojs.com"
     },
     "engines": {
-        "node": ">=6.11.1" 
+        "node": ">=6.11.1"
     },
     "dependencies": {
+        "camelcase": "^4.1.0",
         "recursive-readdir": "^2.2.1"
     },
     "devDependencies": {
