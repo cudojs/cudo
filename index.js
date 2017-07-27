@@ -5,27 +5,35 @@ const recursiveReaddir = require("recursive-readdir");
 const cudo = {
     init(conf) {
         // Ensure required configuration properties are present.
-        conf = (typeof conf === "object") ? conf : {};
+        conf = conf ? conf : {};
 
         // Define app object.
         let app = {
-            run(data) {
-                this.data = (typeof data === "object") ? data : {};
+            contextCreateSync(parent, data) {
+                data = data ? data : {};
 
-                return this.handlers.core.run(this)
+                let context = {
+                    app: this,
+                    data: data,
+                    parent: parent
+                };
+
+                context.root = parent && parent.root ? parent.root : context;
+
+                return context;
+            },
+            run(data) {
+                let context = this.contextCreateSync(null, data);
+
+                return this.handlers.core.run(context)
                     .catch(console.error);
             },
             conf: conf,
             handlers: {
                 core: {
-                    run: (app) => {
-                        return new Promise((resolve, reject) => {
-                            try {
-                                resolve(app);
-                            }
-                            catch (err) {
-                                reject(err);
-                            }
+                    run: (context) => {
+                        return new Promise((resolve) => {
+                            resolve(context);
                         });
                     }
                 }
@@ -60,12 +68,12 @@ const cudo = {
             return Promise.all(readDirPromises)
                 .then((fileSets) => {
                     let files = [];
-                    
+
                     for (let i = 0; i < fileSets.length; i++) {
                         files = files.concat(fileSets[i]);
                     }
 
-                    return new Promise((resolve, reject) => {
+                    return new Promise((resolve) => {
                         for (let i = 0; i < files.length; i++) {
                             let handlerWrapper = require(files[i]);
 
@@ -90,11 +98,6 @@ const cudo = {
                             }
                         }
 
-                        resolve();
-                    });
-                })
-                .then(() => {
-                    return new Promise((resolve) => {
                         resolve(app);
                     });
                 });
@@ -102,7 +105,7 @@ const cudo = {
         else {
             return new Promise((resolve) => {
                 resolve(app);
-            }); 
+            });
         }
     }
 };
