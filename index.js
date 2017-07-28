@@ -30,7 +30,6 @@ const cudo = {
                 let app = this;
 
                 // Extract handler auto-loader settings.
-
                 let autoLoadDisabled = false;
 
                 let handlerPaths = null;
@@ -94,7 +93,7 @@ const cudo = {
 
                                     let basenameCamelCase = camelcase(path.basename(filePath, fileExt))
 
-                                    cursor[basenameCamelCase] = require(filePath);
+                                    cursor[basenameCamelCase] = require(filePath).handler;
                                 }
 
                                 resolve();
