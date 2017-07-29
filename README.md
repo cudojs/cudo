@@ -63,7 +63,7 @@ const conf = {
     core: {
         handlers: {
             paths: [{
-				containerName: "myContainer"
+                containerName: "myContainer"
                 path: fs.realpathSync(__dirname + "/handlers")
             }]
         }
