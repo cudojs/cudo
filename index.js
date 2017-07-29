@@ -6,10 +6,19 @@ const path = require("path");
 
 const recursiveReaddir = require("recursive-readdir");
 
+const emptyLogFunction = function (msg) { };
+
 const cudo = {
     init(conf) {
         // Ensure required configuration properties are present.
         conf = conf ? conf : {};
+
+        // Define log functions based on whether quiet mode is on or off.
+        let errorLog = console.error;
+
+        if (conf.core && conf.core.quietMode) {
+            errorLog = emptyLogFunction;
+        }
 
         // Define app object.
         let app = {
@@ -32,18 +41,21 @@ const cudo = {
                 // Extract handler auto-loader settings.
                 let autoLoadDisabled = false;
 
-                let handlerPaths = null;
+                let lookupConf = null;
 
                 if (app.conf.core && app.conf.core.handlers) {
                     if (app.conf.core.handlers.autoLoadDisabled !== true) {
                         if (Array.isArray(app.conf.core.handlers.paths)) {
-                            handlerPaths = app.conf.core.handlers.paths;
+                            lookupConf = app.conf.core.handlers.paths;
 
-                            return app.handlersLoad(handlerPaths).then(() => {
+                            return app.handlersLoad(lookupConf).then(() => {
                                 return new Promise((resolve) => {
                                     resolve(app);
                                 });
                             });
+                        }
+                        else {
+                            return Promise.reject(new Error("Incorrect handler lookup configuration, missing lookup paths array."));
                         }
                     }
                 }
@@ -53,13 +65,34 @@ const cudo = {
                     resolve(app);
                 });
             },
-            handlersLoad(handlerDirPaths) {
+            handlersLoad(lookupConf) {
                 let readDirPromises = [];
 
-                for (let i = 0; i < handlerDirPaths.length; i++) {
-                    let handlerDirPath = handlerDirPaths[i];
+                for (let i = 0; i < lookupConf.length; i++) {
+                    let lookupPath = null;
 
-                    readDirPromises.push(recursiveReaddir(handlerDirPath)
+                    let containerName = null;
+
+                    if (typeof lookupConf[i] === "string") {
+                        // Allow a lookupConf item to be a string defining lookupPath.
+                        lookupPath = lookupConf[i];
+                    }
+                    else if (typeof lookupConf[i] === "object"
+                        && lookupConf[i].hasOwnProperty("containerName")
+                        && lookupConf[i].hasOwnProperty("path")) {
+                        // Allow a lookupConf item to be an object containing definitions of lookupPath and containerName.
+                        containerName = lookupConf[i].containerName;
+
+                        app.handlers[containerName] = {};
+
+                        lookupPath = lookupConf[i].path;
+                    }
+
+                    if (!lookupPath) {
+                        return Promise.reject(new Error("Incorrect handler lookup configuration, expected object or string"));
+                    }
+
+                    readDirPromises.push(recursiveReaddir(lookupPath)
                         .then((fileSets) => {
                             let files = [];
 
@@ -71,11 +104,11 @@ const cudo = {
                                 for (let i = 0; i < files.length; i++) {
                                     let filePath = files[i];
 
-                                    let fileRelativePath = path.relative(handlerDirPath, filePath);
+                                    let fileRelativePath = path.relative(lookupPath, filePath);
 
                                     let filePathChunks = fileRelativePath.split(path.sep);
 
-                                    let cursor = app.handlers;
+                                    let cursor = containerName ? app.handlers[containerName] : app.handlers;
 
                                     for (let i2 = 0; i2 < filePathChunks.length; i2++) {
                                         let chunkCamelCase = camelcase(filePathChunks[i2]);
@@ -107,7 +140,7 @@ const cudo = {
                 let context = this.contextCreateSync(null, data);
 
                 return this.handlers.core.run(context)
-                    .catch(console.error);
+                    .catch(errorLog);
             },
             conf: conf,
             handlers: {
@@ -122,7 +155,7 @@ const cudo = {
         };
 
         return app.handlersAutoLoad()
-            .catch(console.error);
+            .catch(errorLog);
     }
 };
 

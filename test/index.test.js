@@ -20,6 +20,40 @@ const conf = {
     }
 };
 
+const confHandlersWithContainers = {
+    core: {
+        handlers: {
+            paths: [
+                {
+                    containerName: "cudoTest",
+                    path: fs.realpathSync(__dirname + "/.aux/handlers")
+                }
+            ]
+        }
+    }
+};
+
+const confHandlersMissingPathsArray = {
+    core: {
+        handlers: {
+        },
+        quietMode: true
+    }
+};
+
+const confHandlersMissingItemPath = {
+    core: {
+        handlers: {
+            paths: [
+                {
+                    containerName: "cudoTest"
+                }
+            ]
+        },
+        quietMode: true
+    }
+};
+
 describe("Basic checks", () => {
     it("App object can be created", () => {
         return chai.assert.isFulfilled(cudo.init());
@@ -85,6 +119,24 @@ describe("Handlers", () => {
             .property("test")
             .property("testSubfolder")
             .property("autoLoadTest");
+    });
+
+    it("Handlers can be placed in container objects", () => {
+        return chai.expect(cudo.init(confHandlersWithContainers))
+            .eventually.property("handlers")
+            .property("cudoTest")
+            .property("test")
+            .property("autoLoadTest");
+    });
+
+    it("Handler configuration errors doe to missing paths array are caught", () => {
+        return chai.expect(cudo.init(confHandlersMissingPathsArray))
+            .eventually.become(undefined);
+    });
+
+    it("Handler configurations errors due to missing paths are caught", () => {
+        return chai.expect(cudo.init(confHandlersMissingItemPath))
+            .eventually.become(undefined);
     });
 
     it("Auto-loader can be disabled", () => {
