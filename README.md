@@ -81,7 +81,7 @@ To limit the amount of data passed between functions, and to better control whic
 
 A child context can be created like so:
 ```
-let childContext = context.app.contextCreate(context);
+let childContext = context.app.contextCreateSync(context);
 ```
 
 ## Pre-setting root context data
