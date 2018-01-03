@@ -7,361 +7,361 @@ import cudo, { App, Component, Service, ServiceProvider } from "../";
 chai.use(chaiAsPromised);
 
 describe("Object `cudo`", async () => {
-    it("Can run an app with single own service", async () => {
-        interface DemoAppService extends Service {
-            run: () => Promise<{}>;
-        }
+  it("Can run an app with single own service", async () => {
+    interface DemoAppService extends Service {
+      run: () => Promise<{}>;
+    }
 
-        interface DemoAppServiceProvider extends ServiceProvider {
-            createService: () => Promise<DemoAppService>;
-        }
+    interface DemoAppServiceProvider extends ServiceProvider {
+      createService: () => Promise<DemoAppService>;
+    }
 
-        let demoAppServiceProvider: DemoAppServiceProvider = {
-            createService: async () => {
-                let demoAppService = {
-                    run: async() => {
-                        return true;
-                    }
-                };
-
-                return demoAppService;
-            },
-            serviceName: "demoAppService"
-        }
-
-        let app: App = {
-            runnable: "demoAppService.run",
-            serviceProviders: [demoAppServiceProvider]
+    let demoAppServiceProvider: DemoAppServiceProvider = {
+      createService: async () => {
+        let demoAppService = {
+          run: async () => {
+            return true;
+          }
         };
 
-        return chai.expect(cudo.run(app)).eventually.equal(true);
-    });
+        return demoAppService;
+      },
+      serviceName: "demoAppService"
+    }
 
-    it("Can run an app with arguments passed to the runnable", async () => {
-        interface DemoAppService extends Service {
-            run: (x: number, y: number) => Promise<{}>;
-        }
+    let app: App = {
+      runnable: "demoAppService.run",
+      serviceProviders: [demoAppServiceProvider]
+    };
 
-        interface DemoAppServiceProvider extends ServiceProvider {
-            createService: () => Promise<DemoAppService>;
-        }
+    return chai.expect(cudo.run(app)).eventually.equal(true);
+  });
 
-        let demoAppServiceProvider: DemoAppServiceProvider = {
-            createService: async () => {
-                let demoAppService = {
-                    run: async(x, y) => {
-                        return x + y;
-                    }
-                };
+  it("Can run an app with arguments passed to the runnable", async () => {
+    interface DemoAppService extends Service {
+      run: (x: number, y: number) => Promise<{}>;
+    }
 
-                return demoAppService;
-            },
-            serviceName: "demoAppService"
-        }
+    interface DemoAppServiceProvider extends ServiceProvider {
+      createService: () => Promise<DemoAppService>;
+    }
 
-        let x = 2;
-
-        let y = 7;
-
-        let app: App = {
-            runnable: "demoAppService.run",
-            runnableArguments: [x, y],
-            serviceProviders: [demoAppServiceProvider]
+    let demoAppServiceProvider: DemoAppServiceProvider = {
+      createService: async () => {
+        let demoAppService = {
+          run: async (x, y) => {
+            return x + y;
+          }
         };
 
-        return chai.expect(cudo.run(app)).eventually.equal(x + y);
-    });
+        return demoAppService;
+      },
+      serviceName: "demoAppService"
+    }
 
-    it("Can run an app with service dependencies", async () => {
-        interface NewsletterService extends Service {
-            composeNewsletter: () => Promise<{}>;
-        }
+    let x = 2;
 
-        interface NewsletterServiceProvider extends ServiceProvider {
-            createService: () => Promise<NewsletterService>;
-        }
+    let y = 7;
 
-        let newsletterServiceProvider: NewsletterServiceProvider = {
-            createService: async () => {
-                let newsletterService = {
-                    composeNewsletter: async() => {
-                        return {
-                            headline: "Lorem ipsum"
-                        };
-                    }
-                };
+    let app: App = {
+      runnable: "demoAppService.run",
+      runnableArguments: [x, y],
+      serviceProviders: [demoAppServiceProvider]
+    };
 
-                return newsletterService;
-            },
-            serviceName: "newsletterService"
-        }
+    return chai.expect(cudo.run(app)).eventually.equal(x + y);
+  });
 
-        interface DemoAppService extends Service {
-            run: () => Promise<{}>;
-        }
+  it("Can run an app with service dependencies", async () => {
+    interface NewsletterService extends Service {
+      composeNewsletter: () => Promise<{}>;
+    }
 
-        interface DemoAppServiceProvider extends ServiceProvider {
-            createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
-        }
+    interface NewsletterServiceProvider extends ServiceProvider {
+      createService: () => Promise<NewsletterService>;
+    }
 
-        let demoAppServiceProvider: DemoAppServiceProvider = {
-            createService: async (newsletterService) => {
-                let demoAppService = {
-                    run: async() => {
-                        return newsletterService.composeNewsletter();
-                    }
-                };
-
-                return demoAppService;
-            },
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
-        }
-
-        let app: App = {
-            runnable: "demoAppService.run",
-            serviceProviders: [demoAppServiceProvider, newsletterServiceProvider]
+    let newsletterServiceProvider: NewsletterServiceProvider = {
+      createService: async () => {
+        let newsletterService = {
+          composeNewsletter: async () => {
+            return {
+              headline: "Lorem ipsum"
+            };
+          }
         };
 
-        return chai.expect(cudo.run(app)).eventually.property("headline", "Lorem ipsum");
-    });
+        return newsletterService;
+      },
+      serviceName: "newsletterService"
+    }
 
-    it("Can run an app with component and service dependencies", async () => {
-        interface NewsFeedService extends Service {
-            fetchNews: () => Promise<{ title: string; }[]>;
-        }
+    interface DemoAppService extends Service {
+      run: () => Promise<{}>;
+    }
 
-        interface NewsFeedServiceProvider extends ServiceProvider {
-            createService: () => Promise<NewsFeedService>;
-        }
+    interface DemoAppServiceProvider extends ServiceProvider {
+      createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
+    }
 
-        let newsFeedServiceProvider: NewsFeedServiceProvider = {
-            createService: async () => {
-                let newsFeedService = {
-                    fetchNews: async() => {
-                        return [
-                            {
-                                title: "Dolor sit amet"
-                            }
-                        ];
-                    }
-                };
-
-                return newsFeedService;
-            },
-            serviceName: "newsFeedService"
-        }
-
-        interface NewsletterService extends Service {
-            composeNewsletter: () => Promise<{}>;
-        }
-
-        interface NewsletterServiceProvider extends ServiceProvider {
-            createService: (newsFeedService: NewsFeedService) => Promise<NewsletterService>;
-        }
-
-        let newsletterServiceProvider: NewsletterServiceProvider = {
-            createService: async (newsFeedService) => {
-                let newsletterService = {
-                    composeNewsletter: async() => {
-                        return {
-                            headline: "Lorem ipsum",
-                            newsFeed: newsFeedService.fetchNews()
-                        };
-                    }
-                };
-
-                return newsletterService;
-            },
-            serviceDependencyNames: ["newsFeedService"],
-            serviceName: "newsletterService"
-        }
-
-        let newsletterComponent: Component = {
-            serviceProviders: [newsFeedServiceProvider, newsletterServiceProvider]
+    let demoAppServiceProvider: DemoAppServiceProvider = {
+      createService: async (newsletterService) => {
+        let demoAppService = {
+          run: async () => {
+            return newsletterService.composeNewsletter();
+          }
         };
 
-        interface DemoAppService extends Service {
-            run: () => Promise<{}>;
-        }
+        return demoAppService;
+      },
+      serviceDependencyNames: ["newsletterService"],
+      serviceName: "demoAppService"
+    }
 
-        interface DemoAppServiceProvider extends ServiceProvider {
-            createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
-        }
+    let app: App = {
+      runnable: "demoAppService.run",
+      serviceProviders: [demoAppServiceProvider, newsletterServiceProvider]
+    };
 
-        let demoAppServiceProvider: DemoAppServiceProvider = {
-            createService: async (newsletterService) => {
-                let demoAppService = {
-                    run: async() => {
-                        return newsletterService.composeNewsletter();
-                    }
-                };
+    return chai.expect(cudo.run(app)).eventually.property("headline", "Lorem ipsum");
+  });
 
-                return demoAppService;
-            },
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
-        }
+  it("Can run an app with component and service dependencies", async () => {
+    interface NewsFeedService extends Service {
+      fetchNews: () => Promise<{ title: string; }[]>;
+    }
 
-        let app: App = {
-            dependencies: [newsletterComponent],
-            runnable: "demoAppService.run",
-            serviceProviders: [demoAppServiceProvider]
+    interface NewsFeedServiceProvider extends ServiceProvider {
+      createService: () => Promise<NewsFeedService>;
+    }
+
+    let newsFeedServiceProvider: NewsFeedServiceProvider = {
+      createService: async () => {
+        let newsFeedService = {
+          fetchNews: async () => {
+            return [
+              {
+                title: "Dolor sit amet"
+              }
+            ];
+          }
         };
 
-        return chai.expect(cudo.run(app)).eventually.property("newsFeed").property("0").property("title", "Dolor sit amet");
-    });
+        return newsFeedService;
+      },
+      serviceName: "newsFeedService"
+    }
 
-    it("Can determine which service provider to use when multiple providers exists for the same service", async () => {
-        interface NewsFeedService extends Service {
-            fetchNews: () => Promise<{ title: string; }[]>;
-        }
+    interface NewsletterService extends Service {
+      composeNewsletter: () => Promise<{}>;
+    }
 
-        interface NewsFeedServiceProvider extends ServiceProvider {
-            createService: () => Promise<NewsFeedService>;
-        }
+    interface NewsletterServiceProvider extends ServiceProvider {
+      createService: (newsFeedService: NewsFeedService) => Promise<NewsletterService>;
+    }
 
-        let newsFeedServiceProvider: NewsFeedServiceProvider = {
-            createService: async () => {
-                let newsFeedService = {
-                    fetchNews: async() => {
-                        return [
-                            {
-                                title: "Nunc dolorem"
-                            }
-                        ];
-                    }
-                };
-
-                return newsFeedService;
-            },
-            serviceName: "newsFeedService"
-        }
-
-        interface NewsletterService extends Service {
-            composeNewsletter: () => Promise<{}>;
-        }
-
-        interface NewsletterServiceProvider extends ServiceProvider {
-            createService: (newsFeedService: NewsFeedService) => Promise<NewsletterService>;
-        }
-
-        let newsletterServiceProvider: NewsletterServiceProvider = {
-            createService: async (newsFeedService) => {
-                let newsletterService = {
-                    composeNewsletter: async() => {
-                        return {
-                            headline: "Lorem ipsum",
-                            newsFeed: newsFeedService.fetchNews()
-                        };
-                    }
-                };
-
-                return newsletterService;
-            },
-            serviceDependencyNames: ["newsFeedService"],
-            serviceName: "newsletterService"
-        }
-
-        let newsletterComponent: Component = {
-            serviceProviders: [newsFeedServiceProvider, newsletterServiceProvider]
+    let newsletterServiceProvider: NewsletterServiceProvider = {
+      createService: async (newsFeedService) => {
+        let newsletterService = {
+          composeNewsletter: async () => {
+            return {
+              headline: "Lorem ipsum",
+              newsFeed: newsFeedService.fetchNews()
+            };
+          }
         };
 
-        interface DemoAppService extends Service {
-            run: () => Promise<{}>;
-        }
+        return newsletterService;
+      },
+      serviceDependencyNames: ["newsFeedService"],
+      serviceName: "newsletterService"
+    }
 
-        interface DemoAppServiceProvider extends ServiceProvider {
-            createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
-        }
+    let newsletterComponent: Component = {
+      serviceProviders: [newsFeedServiceProvider, newsletterServiceProvider]
+    };
 
-        let demoAppServiceProvider: DemoAppServiceProvider = {
-            createService: async (newsletterService) => {
-                let demoAppService = {
-                    run: async() => {
-                        return newsletterService.composeNewsletter();
-                    }
-                };
+    interface DemoAppService extends Service {
+      run: () => Promise<{}>;
+    }
 
-                return demoAppService;
-            },
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
-        }
+    interface DemoAppServiceProvider extends ServiceProvider {
+      createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
+    }
 
-        interface EnhancedNewsFeedServiceProvider extends NewsFeedServiceProvider {
-            fetchNews: () => Promise<{ title: string; synopsis: string; }[]>;
+    let demoAppServiceProvider: DemoAppServiceProvider = {
+      createService: async (newsletterService) => {
+        let demoAppService = {
+          run: async () => {
+            return newsletterService.composeNewsletter();
+          }
         };
 
-        let enhancedNewsFeedServiceProvider: NewsFeedServiceProvider = {
-            createService: async () => {
-                let newsFeedService = {
-                    fetchNews: async() => {
-                        return [
-                            {
-                                title: "Dolor sit amet",
-                                synopsis: "Dolor sit amet, consectetur adipiscing elit."
-                            }
-                        ];
-                    }
-                };
+        return demoAppService;
+      },
+      serviceDependencyNames: ["newsletterService"],
+      serviceName: "demoAppService"
+    }
 
-                return newsFeedService;
-            },
-            serviceName: "newsFeedService"
-        }
+    let app: App = {
+      dependencies: [newsletterComponent],
+      runnable: "demoAppService.run",
+      serviceProviders: [demoAppServiceProvider]
+    };
 
-        let app: App = {
-            dependencies: [newsletterComponent],
-            runnable: "demoAppService.run",
-            serviceProviders: [demoAppServiceProvider, enhancedNewsFeedServiceProvider]
+    return chai.expect(cudo.run(app)).eventually.property("newsFeed").property("0").property("title", "Dolor sit amet");
+  });
+
+  it("Can determine which service provider to use when multiple providers exists for the same service", async () => {
+    interface NewsFeedService extends Service {
+      fetchNews: () => Promise<{ title: string; }[]>;
+    }
+
+    interface NewsFeedServiceProvider extends ServiceProvider {
+      createService: () => Promise<NewsFeedService>;
+    }
+
+    let newsFeedServiceProvider: NewsFeedServiceProvider = {
+      createService: async () => {
+        let newsFeedService = {
+          fetchNews: async () => {
+            return [
+              {
+                title: "Nunc dolorem"
+              }
+            ];
+          }
         };
 
-        return chai.expect(cudo.run(app)).eventually.property("newsFeed").property("0").property("synopsis", "Dolor sit amet, consectetur adipiscing elit.");
+        return newsFeedService;
+      },
+      serviceName: "newsFeedService"
+    }
 
-    });
+    interface NewsletterService extends Service {
+      composeNewsletter: () => Promise<{}>;
+    }
 
-    it("Throws an error when the runnable is not a valid service or function", async () => {
-        let app: App = {
-            runnable: "",
-            serviceProviders: []
-        }
+    interface NewsletterServiceProvider extends ServiceProvider {
+      createService: (newsFeedService: NewsFeedService) => Promise<NewsletterService>;
+    }
 
-        return chai.expect(cudo.run(app)).rejected;
-    });
-
-    it("Throws an error when trying to run an app and an impossible to resolve dependency is found", async () => {
-        interface NewsletterService extends Service {
-            composeNewsletter: () => Promise<{}>;
-        }
-
-        interface DemoAppService extends Service {
-            run: () => Promise<{}>;
-        }
-
-        interface DemoAppServiceProvider extends ServiceProvider {
-            createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
-        }
-
-        let demoAppServiceProvider: DemoAppServiceProvider = {
-            createService: async (newsletterService) => {
-                let demoAppService = {
-                    run: async() => {
-                        return newsletterService.composeNewsletter();
-                    }
-                };
-
-                return demoAppService;
-            },
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
-        }
-
-        let app: App = {
-            runnable: "demoAppService.run",
-            serviceProviders: [demoAppServiceProvider]
+    let newsletterServiceProvider: NewsletterServiceProvider = {
+      createService: async (newsFeedService) => {
+        let newsletterService = {
+          composeNewsletter: async () => {
+            return {
+              headline: "Lorem ipsum",
+              newsFeed: newsFeedService.fetchNews()
+            };
+          }
         };
 
-        return chai.expect(cudo.run(app)).rejected;
-    });
+        return newsletterService;
+      },
+      serviceDependencyNames: ["newsFeedService"],
+      serviceName: "newsletterService"
+    }
+
+    let newsletterComponent: Component = {
+      serviceProviders: [newsFeedServiceProvider, newsletterServiceProvider]
+    };
+
+    interface DemoAppService extends Service {
+      run: () => Promise<{}>;
+    }
+
+    interface DemoAppServiceProvider extends ServiceProvider {
+      createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
+    }
+
+    let demoAppServiceProvider: DemoAppServiceProvider = {
+      createService: async (newsletterService) => {
+        let demoAppService = {
+          run: async () => {
+            return newsletterService.composeNewsletter();
+          }
+        };
+
+        return demoAppService;
+      },
+      serviceDependencyNames: ["newsletterService"],
+      serviceName: "demoAppService"
+    }
+
+    interface EnhancedNewsFeedServiceProvider extends NewsFeedServiceProvider {
+      fetchNews: () => Promise<{ title: string; synopsis: string; }[]>;
+    };
+
+    let enhancedNewsFeedServiceProvider: NewsFeedServiceProvider = {
+      createService: async () => {
+        let newsFeedService = {
+          fetchNews: async () => {
+            return [
+              {
+                title: "Dolor sit amet",
+                synopsis: "Dolor sit amet, consectetur adipiscing elit."
+              }
+            ];
+          }
+        };
+
+        return newsFeedService;
+      },
+      serviceName: "newsFeedService"
+    }
+
+    let app: App = {
+      dependencies: [newsletterComponent],
+      runnable: "demoAppService.run",
+      serviceProviders: [demoAppServiceProvider, enhancedNewsFeedServiceProvider]
+    };
+
+    return chai.expect(cudo.run(app)).eventually.property("newsFeed").property("0").property("synopsis", "Dolor sit amet, consectetur adipiscing elit.");
+
+  });
+
+  it("Throws an error when the runnable is not a valid service or function", async () => {
+    let app: App = {
+      runnable: "",
+      serviceProviders: []
+    }
+
+    return chai.expect(cudo.run(app)).rejected;
+  });
+
+  it("Throws an error when trying to run an app and an impossible to resolve dependency is found", async () => {
+    interface NewsletterService extends Service {
+      composeNewsletter: () => Promise<{}>;
+    }
+
+    interface DemoAppService extends Service {
+      run: () => Promise<{}>;
+    }
+
+    interface DemoAppServiceProvider extends ServiceProvider {
+      createService: (newsletterService: NewsletterService) => Promise<DemoAppService>;
+    }
+
+    let demoAppServiceProvider: DemoAppServiceProvider = {
+      createService: async (newsletterService) => {
+        let demoAppService = {
+          run: async () => {
+            return newsletterService.composeNewsletter();
+          }
+        };
+
+        return demoAppService;
+      },
+      serviceDependencyNames: ["newsletterService"],
+      serviceName: "demoAppService"
+    }
+
+    let app: App = {
+      runnable: "demoAppService.run",
+      serviceProviders: [demoAppServiceProvider]
+    };
+
+    return chai.expect(cudo.run(app)).rejected;
+  });
 });
