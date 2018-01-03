@@ -20,11 +20,15 @@ function extractServiceProvidersFromComponents(components, serviceProviders) {
         return serviceProviders;
     });
 }
-function filterUniqueServiceProviders(serviceProviders) {
+function filterValidUniqueServiceProviders(serviceProviders) {
     return __awaiter(this, void 0, void 0, function* () {
+        let serviceNamePattern = /^[a-zA-Z0-9_\$]+\.[a-zA-Z0-9_\$]+$/;
         let uniqueServiceProviders = [];
         let existingServiceNames = [];
         for (let i = 0; i < serviceProviders.length; i++) {
+            if (!serviceNamePattern.test(serviceProviders[i].serviceName)) {
+                throw new Error("Service name `" + serviceProviders[i].serviceName + "` is invalid.");
+            }
             if (existingServiceNames.indexOf(serviceProviders[i].serviceName) == -1) {
                 uniqueServiceProviders.push(serviceProviders[i]);
                 existingServiceNames.push(serviceProviders[i].serviceName);
@@ -35,14 +39,18 @@ function filterUniqueServiceProviders(serviceProviders) {
 }
 function resolveServices(serviceProviders) {
     return __awaiter(this, void 0, void 0, function* () {
-        let servicesByName = {};
+        let servicesByPackageByName = {};
         let tmpServiceProviders = Object.assign([], serviceProviders);
         let failCounter = 0;
         while (tmpServiceProviders.length > 0) {
             let tmpServiceProvider = tmpServiceProviders.splice(0, 1)[0];
             if (tmpServiceProvider.serviceDependencyNames == undefined
                 || tmpServiceProvider.serviceDependencyNames.length == 0) {
-                servicesByName[tmpServiceProvider.serviceName] = yield tmpServiceProvider.createService();
+                let serviceNameChunks = tmpServiceProvider.serviceName.split(".");
+                if (servicesByPackageByName[serviceNameChunks[0]] === undefined) {
+                    servicesByPackageByName[serviceNameChunks[0]] = {};
+                }
+                servicesByPackageByName[serviceNameChunks[0]][serviceNameChunks[1]] = yield tmpServiceProvider.createService();
             }
             else {
                 if (tmpServiceProvider.serviceDependencies == undefined) {
@@ -54,14 +62,20 @@ function resolveServices(serviceProviders) {
                 }
                 let resolvedServiceDependenciesCountBeforeCheck = tmpServiceProvider.resolvedServiceDependenciesCount;
                 for (let i = 0; i < tmpServiceProvider.serviceDependencies.length; i++) {
+                    let serviceDependencyNameChunks = tmpServiceProvider.serviceDependencyNames[i].split(".");
                     if (tmpServiceProvider.serviceDependencies[i] == undefined
-                        && servicesByName[tmpServiceProvider.serviceDependencyNames[i]]) {
-                        tmpServiceProvider.serviceDependencies[i] = servicesByName[tmpServiceProvider.serviceDependencyNames[i]];
+                        && servicesByPackageByName[serviceDependencyNameChunks[0]]
+                        && servicesByPackageByName[serviceDependencyNameChunks[0]][serviceDependencyNameChunks[1]]) {
+                        tmpServiceProvider.serviceDependencies[i] = servicesByPackageByName[serviceDependencyNameChunks[0]][serviceDependencyNameChunks[1]];
                         tmpServiceProvider.resolvedServiceDependenciesCount++;
                     }
                 }
                 if (tmpServiceProvider.serviceDependencies.length == tmpServiceProvider.resolvedServiceDependenciesCount) {
-                    servicesByName[tmpServiceProvider.serviceName] = yield tmpServiceProvider.createService.apply(null, tmpServiceProvider.serviceDependencies);
+                    let serviceNameChunks = tmpServiceProvider.serviceName.split(".");
+                    if (servicesByPackageByName[serviceNameChunks[0]] === undefined) {
+                        servicesByPackageByName[serviceNameChunks[0]] = {};
+                    }
+                    servicesByPackageByName[serviceNameChunks[0]][serviceNameChunks[1]] = yield tmpServiceProvider.createService.apply(null, tmpServiceProvider.serviceDependencies);
                 }
                 else {
                     tmpServiceProviders.push(tmpServiceProvider);
@@ -75,10 +89,10 @@ function resolveServices(serviceProviders) {
                 for (let i = 0; i < tmpServiceProviders.length; i++) {
                     remainingProvidersNames.push(tmpServiceProvider.serviceName);
                 }
-                throw new Error("Dependencies for the following services cannot be resolved: " + remainingProvidersNames.join(", "));
+                throw new Error("Dependencies for the following services cannot be resolved: `" + remainingProvidersNames.join("`, `") + "`.");
             }
         }
-        return servicesByName;
+        return servicesByPackageByName;
     });
 }
 const cudo = {
@@ -89,13 +103,14 @@ const cudo = {
             let dependencyServiceProviders = yield extractServiceProvidersFromComponents(app.dependencies, serviceProviders);
             serviceProviders = serviceProviders.concat(dependencyServiceProviders);
         }
-        let uniqueServiceProviders = yield filterUniqueServiceProviders(serviceProviders);
-        let servicesByName = yield resolveServices(uniqueServiceProviders);
+        let uniqueServiceProviders = yield filterValidUniqueServiceProviders(serviceProviders);
+        let servicesByPackageByName = yield resolveServices(uniqueServiceProviders);
         let runnableChunks = app.runnable.split(".");
-        if (servicesByName[runnableChunks[0]]
-            && servicesByName[runnableChunks[0]][runnableChunks[1]]) {
+        if (servicesByPackageByName[runnableChunks[0]]
+            && servicesByPackageByName[runnableChunks[0]][runnableChunks[1]]
+            && servicesByPackageByName[runnableChunks[0]][runnableChunks[1]][runnableChunks[2]]) {
             let runnableArguments = app.runnableArguments || [];
-            return servicesByName[runnableChunks[0]][runnableChunks[1]].apply(null, runnableArguments);
+            return servicesByPackageByName[runnableChunks[0]][runnableChunks[1]][runnableChunks[2]].apply(null, runnableArguments);
         }
         else {
             throw new Error("Runnable `" + app.runnable + "` is not a valid service or function.");

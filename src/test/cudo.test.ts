@@ -26,11 +26,11 @@ describe("Object `cudo`", async () => {
 
         return demoAppService;
       },
-      serviceName: "demoAppService"
+      serviceName: "cudo.demoAppService"
     }
 
     let app: App = {
-      runnable: "demoAppService.run",
+      runnable: "cudo.demoAppService.run",
       serviceProviders: [demoAppServiceProvider]
     };
 
@@ -56,7 +56,7 @@ describe("Object `cudo`", async () => {
 
         return demoAppService;
       },
-      serviceName: "demoAppService"
+      serviceName: "cudo.demoAppService"
     }
 
     let x = 2;
@@ -64,7 +64,7 @@ describe("Object `cudo`", async () => {
     let y = 7;
 
     let app: App = {
-      runnable: "demoAppService.run",
+      runnable: "cudo.demoAppService.run",
       runnableArguments: [x, y],
       serviceProviders: [demoAppServiceProvider]
     };
@@ -93,7 +93,7 @@ describe("Object `cudo`", async () => {
 
         return newsletterService;
       },
-      serviceName: "newsletterService"
+      serviceName: "cudo.newsletterService"
     }
 
     interface DemoAppService extends Service {
@@ -114,12 +114,12 @@ describe("Object `cudo`", async () => {
 
         return demoAppService;
       },
-      serviceDependencyNames: ["newsletterService"],
-      serviceName: "demoAppService"
+      serviceDependencyNames: ["cudo.newsletterService"],
+      serviceName: "cudo.demoAppService"
     }
 
     let app: App = {
-      runnable: "demoAppService.run",
+      runnable: "cudo.demoAppService.run",
       serviceProviders: [demoAppServiceProvider, newsletterServiceProvider]
     };
 
@@ -149,7 +149,7 @@ describe("Object `cudo`", async () => {
 
         return newsFeedService;
       },
-      serviceName: "newsFeedService"
+      serviceName: "cudo.newsFeedService"
     }
 
     interface NewsletterService extends Service {
@@ -173,8 +173,8 @@ describe("Object `cudo`", async () => {
 
         return newsletterService;
       },
-      serviceDependencyNames: ["newsFeedService"],
-      serviceName: "newsletterService"
+      serviceDependencyNames: ["cudo.newsFeedService"],
+      serviceName: "cudo.newsletterService"
     }
 
     let newsletterComponent: Component = {
@@ -199,13 +199,13 @@ describe("Object `cudo`", async () => {
 
         return demoAppService;
       },
-      serviceDependencyNames: ["newsletterService"],
-      serviceName: "demoAppService"
+      serviceDependencyNames: ["cudo.newsletterService"],
+      serviceName: "cudo.demoAppService"
     }
 
     let app: App = {
       dependencies: [newsletterComponent],
-      runnable: "demoAppService.run",
+      runnable: "cudo.demoAppService.run",
       serviceProviders: [demoAppServiceProvider]
     };
 
@@ -235,7 +235,7 @@ describe("Object `cudo`", async () => {
 
         return newsFeedService;
       },
-      serviceName: "newsFeedService"
+      serviceName: "cudo.newsFeedService"
     }
 
     interface NewsletterService extends Service {
@@ -259,8 +259,8 @@ describe("Object `cudo`", async () => {
 
         return newsletterService;
       },
-      serviceDependencyNames: ["newsFeedService"],
-      serviceName: "newsletterService"
+      serviceDependencyNames: ["cudo.newsFeedService"],
+      serviceName: "cudo.newsletterService"
     }
 
     let newsletterComponent: Component = {
@@ -285,8 +285,8 @@ describe("Object `cudo`", async () => {
 
         return demoAppService;
       },
-      serviceDependencyNames: ["newsletterService"],
-      serviceName: "demoAppService"
+      serviceDependencyNames: ["cudo.newsletterService"],
+      serviceName: "cudo.demoAppService"
     }
 
     interface EnhancedNewsFeedServiceProvider extends NewsFeedServiceProvider {
@@ -308,12 +308,12 @@ describe("Object `cudo`", async () => {
 
         return newsFeedService;
       },
-      serviceName: "newsFeedService"
+      serviceName: "cudo.newsFeedService"
     }
 
     let app: App = {
       dependencies: [newsletterComponent],
-      runnable: "demoAppService.run",
+      runnable: "cudo.demoAppService.run",
       serviceProviders: [demoAppServiceProvider, enhancedNewsFeedServiceProvider]
     };
 
@@ -326,6 +326,36 @@ describe("Object `cudo`", async () => {
       runnable: "",
       serviceProviders: []
     }
+
+    return chai.expect(cudo.run(app)).rejected;
+  });
+
+  it("Throws an error when a service name format is invalid", async () => {
+    interface DemoAppService extends Service {
+      run: () => Promise<{}>;
+    }
+
+    interface DemoAppServiceProvider extends ServiceProvider {
+      createService: () => Promise<DemoAppService>;
+    }
+
+    let demoAppServiceProvider: DemoAppServiceProvider = {
+      createService: async () => {
+        let demoAppService = {
+          run: async () => {
+            return true;
+          }
+        };
+
+        return demoAppService;
+      },
+      serviceName: "demoAppService"
+    }
+
+    let app: App = {
+      runnable: "demoAppService.run",
+      serviceProviders: [demoAppServiceProvider]
+    };
 
     return chai.expect(cudo.run(app)).rejected;
   });
@@ -353,12 +383,12 @@ describe("Object `cudo`", async () => {
 
         return demoAppService;
       },
-      serviceDependencyNames: ["newsletterService"],
-      serviceName: "demoAppService"
+      serviceDependencyNames: ["cudo.newsletterService"],
+      serviceName: "cudo.demoAppService"
     }
 
     let app: App = {
-      runnable: "demoAppService.run",
+      runnable: "cudo.demoAppService.run",
       serviceProviders: [demoAppServiceProvider]
     };
 

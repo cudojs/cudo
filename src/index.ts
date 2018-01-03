@@ -38,12 +38,18 @@ async function extractServiceProvidersFromComponents(components: Component[], se
   return serviceProviders;
 }
 
-async function filterUniqueServiceProviders(serviceProviders: ServiceProvider[]) {
+async function filterValidUniqueServiceProviders(serviceProviders: ServiceProvider[]) {
+  let serviceNamePattern = /^[a-zA-Z0-9_\$]+\.[a-zA-Z0-9_\$]+$/;
+
   let uniqueServiceProviders: ServiceProvider[] = [];
 
   let existingServiceNames = [];
 
   for (let i = 0; i < serviceProviders.length; i++) {
+    if (!serviceNamePattern.test(serviceProviders[i].serviceName)) {
+      throw new Error("Service name `" + serviceProviders[i].serviceName + "` is invalid.");
+    }
+
     if (existingServiceNames.indexOf(serviceProviders[i].serviceName) == -1) {
       uniqueServiceProviders.push(serviceProviders[i]);
 
@@ -55,7 +61,7 @@ async function filterUniqueServiceProviders(serviceProviders: ServiceProvider[])
 }
 
 async function resolveServices(serviceProviders: ServiceProvider[]) {
-  interface ServicesByName {
+  interface ServicesByPackageByName {
     [name: string]: Service;
   }
 
@@ -65,7 +71,7 @@ async function resolveServices(serviceProviders: ServiceProvider[]) {
     serviceDependencies: Service[];
   }
 
-  let servicesByName: ServicesByName = {};
+  let servicesByPackageByName: ServicesByPackageByName = {};
 
   let tmpServiceProviders: TmpServiceProvider[] = Object.assign([], serviceProviders);
 
@@ -76,7 +82,13 @@ async function resolveServices(serviceProviders: ServiceProvider[]) {
 
     if (tmpServiceProvider.serviceDependencyNames == undefined
       || tmpServiceProvider.serviceDependencyNames.length == 0) {
-      servicesByName[tmpServiceProvider.serviceName] = await tmpServiceProvider.createService();
+      let serviceNameChunks = tmpServiceProvider.serviceName.split(".");
+
+      if (servicesByPackageByName[serviceNameChunks[0]] === undefined) {
+        servicesByPackageByName[serviceNameChunks[0]] = {};
+      }
+
+      servicesByPackageByName[serviceNameChunks[0]][serviceNameChunks[1]] = await tmpServiceProvider.createService();
     }
     else {
       if (tmpServiceProvider.serviceDependencies == undefined) {
@@ -92,16 +104,25 @@ async function resolveServices(serviceProviders: ServiceProvider[]) {
       let resolvedServiceDependenciesCountBeforeCheck = tmpServiceProvider.resolvedServiceDependenciesCount;
 
       for (let i = 0; i < tmpServiceProvider.serviceDependencies.length; i++) {
+        let serviceDependencyNameChunks = tmpServiceProvider.serviceDependencyNames[i].split(".");
+
         if (tmpServiceProvider.serviceDependencies[i] == undefined
-          && servicesByName[tmpServiceProvider.serviceDependencyNames[i]]) {
-          tmpServiceProvider.serviceDependencies[i] = servicesByName[tmpServiceProvider.serviceDependencyNames[i]];
+          && servicesByPackageByName[serviceDependencyNameChunks[0]]
+          && servicesByPackageByName[serviceDependencyNameChunks[0]][serviceDependencyNameChunks[1]]) {
+          tmpServiceProvider.serviceDependencies[i] = servicesByPackageByName[serviceDependencyNameChunks[0]][serviceDependencyNameChunks[1]];
 
           tmpServiceProvider.resolvedServiceDependenciesCount++;
         }
       }
 
       if (tmpServiceProvider.serviceDependencies.length == tmpServiceProvider.resolvedServiceDependenciesCount) {
-        servicesByName[tmpServiceProvider.serviceName] = await tmpServiceProvider.createService.apply(null, tmpServiceProvider.serviceDependencies);
+        let serviceNameChunks = tmpServiceProvider.serviceName.split(".");
+
+        if (servicesByPackageByName[serviceNameChunks[0]] === undefined) {
+          servicesByPackageByName[serviceNameChunks[0]] = {};
+        }
+
+        servicesByPackageByName[serviceNameChunks[0]][serviceNameChunks[1]] = await tmpServiceProvider.createService.apply(null, tmpServiceProvider.serviceDependencies);
       }
       else {
         tmpServiceProviders.push(tmpServiceProvider);
@@ -119,11 +140,11 @@ async function resolveServices(serviceProviders: ServiceProvider[]) {
         remainingProvidersNames.push(tmpServiceProvider.serviceName);
       }
 
-      throw new Error("Dependencies for the following services cannot be resolved: " + remainingProvidersNames.join(", "));
+      throw new Error("Dependencies for the following services cannot be resolved: `" + remainingProvidersNames.join("`, `") + "`.");
     }
   }
 
-  return servicesByName;
+  return servicesByPackageByName;
 }
 
 const cudo: Cudo = {
@@ -138,17 +159,18 @@ const cudo: Cudo = {
       serviceProviders = serviceProviders.concat(dependencyServiceProviders);
     }
 
-    let uniqueServiceProviders = await filterUniqueServiceProviders(serviceProviders);
+    let uniqueServiceProviders = await filterValidUniqueServiceProviders(serviceProviders);
 
-    let servicesByName = await resolveServices(uniqueServiceProviders);
+    let servicesByPackageByName = await resolveServices(uniqueServiceProviders);
 
     let runnableChunks = app.runnable.split(".");
 
-    if (servicesByName[runnableChunks[0]]
-      && servicesByName[runnableChunks[0]][runnableChunks[1]]) {
+    if (servicesByPackageByName[runnableChunks[0]]
+      && servicesByPackageByName[runnableChunks[0]][runnableChunks[1]]
+      && servicesByPackageByName[runnableChunks[0]][runnableChunks[1]][runnableChunks[2]]) {
       let runnableArguments = app.runnableArguments || [];
 
-      return servicesByName[runnableChunks[0]][runnableChunks[1]].apply(null, runnableArguments);
+      return servicesByPackageByName[runnableChunks[0]][runnableChunks[1]][runnableChunks[2]].apply(null, runnableArguments);
     }
     else {
       throw new Error("Runnable `" + app.runnable + "` is not a valid service or function.");

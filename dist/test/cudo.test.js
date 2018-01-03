@@ -23,10 +23,10 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return demoAppService;
             }),
-            serviceName: "demoAppService"
+            serviceName: "cudo.demoAppService"
         };
         let app = {
-            runnable: "demoAppService.run",
+            runnable: "cudo.demoAppService.run",
             serviceProviders: [demoAppServiceProvider]
         };
         return chai.expect(_1.default.run(app)).eventually.equal(true);
@@ -41,12 +41,12 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return demoAppService;
             }),
-            serviceName: "demoAppService"
+            serviceName: "cudo.demoAppService"
         };
         let x = 2;
         let y = 7;
         let app = {
-            runnable: "demoAppService.run",
+            runnable: "cudo.demoAppService.run",
             runnableArguments: [x, y],
             serviceProviders: [demoAppServiceProvider]
         };
@@ -64,7 +64,7 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return newsletterService;
             }),
-            serviceName: "newsletterService"
+            serviceName: "cudo.newsletterService"
         };
         let demoAppServiceProvider = {
             createService: (newsletterService) => __awaiter(this, void 0, void 0, function* () {
@@ -75,11 +75,11 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return demoAppService;
             }),
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
+            serviceDependencyNames: ["cudo.newsletterService"],
+            serviceName: "cudo.demoAppService"
         };
         let app = {
-            runnable: "demoAppService.run",
+            runnable: "cudo.demoAppService.run",
             serviceProviders: [demoAppServiceProvider, newsletterServiceProvider]
         };
         return chai.expect(_1.default.run(app)).eventually.property("headline", "Lorem ipsum");
@@ -98,7 +98,7 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return newsFeedService;
             }),
-            serviceName: "newsFeedService"
+            serviceName: "cudo.newsFeedService"
         };
         let newsletterServiceProvider = {
             createService: (newsFeedService) => __awaiter(this, void 0, void 0, function* () {
@@ -112,8 +112,8 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return newsletterService;
             }),
-            serviceDependencyNames: ["newsFeedService"],
-            serviceName: "newsletterService"
+            serviceDependencyNames: ["cudo.newsFeedService"],
+            serviceName: "cudo.newsletterService"
         };
         let newsletterComponent = {
             serviceProviders: [newsFeedServiceProvider, newsletterServiceProvider]
@@ -127,12 +127,12 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return demoAppService;
             }),
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
+            serviceDependencyNames: ["cudo.newsletterService"],
+            serviceName: "cudo.demoAppService"
         };
         let app = {
             dependencies: [newsletterComponent],
-            runnable: "demoAppService.run",
+            runnable: "cudo.demoAppService.run",
             serviceProviders: [demoAppServiceProvider]
         };
         return chai.expect(_1.default.run(app)).eventually.property("newsFeed").property("0").property("title", "Dolor sit amet");
@@ -151,7 +151,7 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return newsFeedService;
             }),
-            serviceName: "newsFeedService"
+            serviceName: "cudo.newsFeedService"
         };
         let newsletterServiceProvider = {
             createService: (newsFeedService) => __awaiter(this, void 0, void 0, function* () {
@@ -165,8 +165,8 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return newsletterService;
             }),
-            serviceDependencyNames: ["newsFeedService"],
-            serviceName: "newsletterService"
+            serviceDependencyNames: ["cudo.newsFeedService"],
+            serviceName: "cudo.newsletterService"
         };
         let newsletterComponent = {
             serviceProviders: [newsFeedServiceProvider, newsletterServiceProvider]
@@ -180,8 +180,8 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return demoAppService;
             }),
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
+            serviceDependencyNames: ["cudo.newsletterService"],
+            serviceName: "cudo.demoAppService"
         };
         ;
         let enhancedNewsFeedServiceProvider = {
@@ -198,11 +198,11 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return newsFeedService;
             }),
-            serviceName: "newsFeedService"
+            serviceName: "cudo.newsFeedService"
         };
         let app = {
             dependencies: [newsletterComponent],
-            runnable: "demoAppService.run",
+            runnable: "cudo.demoAppService.run",
             serviceProviders: [demoAppServiceProvider, enhancedNewsFeedServiceProvider]
         };
         return chai.expect(_1.default.run(app)).eventually.property("newsFeed").property("0").property("synopsis", "Dolor sit amet, consectetur adipiscing elit.");
@@ -211,6 +211,24 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
         let app = {
             runnable: "",
             serviceProviders: []
+        };
+        return chai.expect(_1.default.run(app)).rejected;
+    }));
+    it("Throws an error when a service name format is invalid", () => __awaiter(this, void 0, void 0, function* () {
+        let demoAppServiceProvider = {
+            createService: () => __awaiter(this, void 0, void 0, function* () {
+                let demoAppService = {
+                    run: () => __awaiter(this, void 0, void 0, function* () {
+                        return true;
+                    })
+                };
+                return demoAppService;
+            }),
+            serviceName: "demoAppService"
+        };
+        let app = {
+            runnable: "demoAppService.run",
+            serviceProviders: [demoAppServiceProvider]
         };
         return chai.expect(_1.default.run(app)).rejected;
     }));
@@ -224,11 +242,11 @@ describe("Object `cudo`", () => __awaiter(this, void 0, void 0, function* () {
                 };
                 return demoAppService;
             }),
-            serviceDependencyNames: ["newsletterService"],
-            serviceName: "demoAppService"
+            serviceDependencyNames: ["cudo.newsletterService"],
+            serviceName: "cudo.demoAppService"
         };
         let app = {
-            runnable: "demoAppService.run",
+            runnable: "cudo.demoAppService.run",
             serviceProviders: [demoAppServiceProvider]
         };
         return chai.expect(_1.default.run(app)).rejected;
