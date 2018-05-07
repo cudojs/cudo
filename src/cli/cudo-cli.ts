@@ -3,7 +3,7 @@ import * as camelcase from "camelcase";
 import * as minimist from "minimist";
 
 export interface Actions {
-  [action: string]: Handler;
+  [scope: string]: { [action: string]: Handler; };
 }
 
 export interface Handler {
@@ -45,15 +45,25 @@ export class CudoCli {
 
   async runAction(parsedArgv: minimist.ParsedArgs) {
     if (!parsedArgv._ || parsedArgv._.length < 1) {
+      throw new Error("Missing scope argument");
+    }
+
+    let scope = parsedArgv._[0];
+
+    if (!this.actions[scope]) {
+      throw new Error("Scope `" + scope + "` does not exist");
+    }
+
+    if (!parsedArgv._ || parsedArgv._.length < 2) {
       throw new Error("Missing action argument");
     }
 
-    let action = parsedArgv._[0];
+    let action = parsedArgv._[1];
 
-    if (!this.actions[action]) {
-      throw new Error("Action `" + action + "` does not exist");
+    if (!this.actions[scope][action]) {
+      throw new Error("Action `" + action + "` does not exist in scope `" + scope + "`");
     }
 
-    await this.actions[action](parsedArgv);
+    await this.actions[scope][action](parsedArgv);
   }
 }

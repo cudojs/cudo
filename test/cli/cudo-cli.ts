@@ -10,14 +10,14 @@ describe("CudoCli", () => {
   it("can parse arguments", async () => {
     let cli = new cudoCli.CudoCli();
 
-    let mockArgv = ["path-to-node", "path-to-script", "make-beverage", "tea", "-m", "-l", "--variety=breakfast", "--serve-in", "cup"];
+    let mockArgv = ["path-to-node", "path-to-script", "hot-beverage", "make", "-m", "-l", "--type=breakfast-tea", "--serve-in", "cup"];
 
     return chai.expect(cli.parseArgv(mockArgv)).deep.eq({
-      "_": ["makeBeverage", "tea"],
+      "_": ["hotBeverage", "make"],
       "m": true,
       "l": true,
       "serveIn": "cup",
-      "variety": "breakfast"
+      "type": "breakfast-tea"
     });
   });
 
@@ -25,36 +25,42 @@ describe("CudoCli", () => {
     let resultMessage = "";
 
     let mockActions: cudoCli.Actions = {
-      "makeBeverage": async (parsedArgv) => {
-        if (parsedArgv["_"].length >= 2) {
-          resultMessage = "Making a beverage: " + parsedArgv._[1];
+      hotBeverage: {
+        make: async (parsedArgv) => {
+          if (!parsedArgv.type) {
+            throw new Error("Missing hot beverage type argument");
+          }
+
+          resultMessage = "Making a hot beverage: " + parsedArgv.type;
         }
       }
     };
 
-    let mockArgv = ["path-to-node", "path-to-script", "make-beverage", "tea"];
+    let mockArgv = ["path-to-node", "path-to-script", "hot-beverage", "make", "--type=breakfast-tea"];
 
     let cli = new cudoCli.CudoCli(mockActions);
 
     await cli.run(mockArgv);
 
-    return chai.expect(resultMessage).eq("Making a beverage: tea");
+    return chai.expect(resultMessage).eq("Making a hot beverage: breakfast-tea");
   });
 
   it("can run an action", async () => {
     let resultMessage = "";
 
     let mockActions: cudoCli.Actions = {
-      "makeBeverage": async (parsedArgv) => {
-        if (parsedArgv._.length < 2) {
-          throw new Error("Missing beverage kind argument");
-        }
+      hotBeverage: {
+        make: async (parsedArgv) => {
+          if (!parsedArgv.type) {
+            throw new Error("Missing hot beverage type argument");
+          }
 
-        resultMessage = "Making a beverage: " + parsedArgv._[1];
+          resultMessage = "Making a hot beverage: " + parsedArgv.type;
+        }
       }
     };
 
-    let mockArgv = ["path-to-node", "path-to-script", "make-beverage", "tea"];
+    let mockArgv = ["path-to-node", "path-to-script", "hot-beverage", "make", "--type=breakfast-tea"];
 
     let cli = new cudoCli.CudoCli(mockActions);
 
@@ -62,11 +68,13 @@ describe("CudoCli", () => {
 
     await cli.runAction(parsedArgv);
 
-    return chai.expect(resultMessage).eq("Making a beverage: tea");
+    return chai.expect(resultMessage).eq("Making a hot beverage: breakfast-tea");
   });
 
-  it("throws an error on running an action when action is not specified", async () => {
-    let mockActions: cudoCli.Actions = {};
+  it("throws an error on running an action when scope is not specified", async () => {
+    let mockActions: cudoCli.Actions = {
+      "hotBeverage": {}
+    };
 
     let mockArgv = ["path-to-node", "path-to-script"];
 
@@ -74,18 +82,46 @@ describe("CudoCli", () => {
 
     let parsedArgv = cli.parseArgv(mockArgv);
 
-    return chai.expect(cli.runAction(parsedArgv)).eventually.rejected;
+    return chai.expect(cli.runAction(parsedArgv)).eventually.rejectedWith("Missing scope argument");
   });
 
-  it("throws an error on running an action when specified action does not exist", async () => {
-    let mockActions: cudoCli.Actions = {};
+  it("throws an error on running an action when action is not specified", async () => {
+    let mockActions: cudoCli.Actions = {
+      "hotBeverage": {}
+    };
 
-    let mockArgv = ["path-to-node", "path-to-script", "make-cake"];
+    let mockArgv = ["path-to-node", "path-to-script", "hot-beverage"];
 
     let cli = new cudoCli.CudoCli(mockActions);
 
     let parsedArgv = cli.parseArgv(mockArgv);
 
-    return chai.expect(cli.runAction(parsedArgv)).eventually.rejected;
+    return chai.expect(cli.runAction(parsedArgv)).eventually.rejectedWith("Missing action argument");
+  });
+
+  it("throws an error on running an action when specified scope does not exist", async () => {
+    let mockActions: cudoCli.Actions = {};
+
+    let mockArgv = ["path-to-node", "path-to-script", "hot-beverage"];
+
+    let cli = new cudoCli.CudoCli(mockActions);
+
+    let parsedArgv = cli.parseArgv(mockArgv);
+
+    return chai.expect(cli.runAction(parsedArgv)).eventually.rejectedWith("Scope `hotBeverage` does not exist");
+  });
+
+  it("throws an error on running an action when specified action does not exist", async () => {
+    let mockActions: cudoCli.Actions = {
+      "hotBeverage": {}
+    };
+
+    let mockArgv = ["path-to-node", "path-to-script", "hot-beverage", "prepare"];
+
+    let cli = new cudoCli.CudoCli(mockActions);
+
+    let parsedArgv = cli.parseArgv(mockArgv);
+
+    return chai.expect(cli.runAction(parsedArgv)).eventually.rejectedWith("Action `prepare` does not exist in scope `hotBeverage`");
   });
 });
