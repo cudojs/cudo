@@ -1,11 +1,13 @@
-import * as minimist from "minimist";
+import * as camelcase from "camelcase";
 
-export interface Handler {
-  (parsedArgv: minimist.ParsedArgs): Promise<void>;
-}
+import * as minimist from "minimist";
 
 export interface Actions {
   [action: string]: Handler;
+}
+
+export interface Handler {
+  (parsedArgv: minimist.ParsedArgs): Promise<void>;
 }
 
 const defaultActions: Actions = {
@@ -20,7 +22,19 @@ export class CudoCli {
   }
 
   parseArgv(argv: string[]): minimist.ParsedArgs {
-    return minimist(argv.slice(2));
+    let parsedArgvOrigCase = minimist(argv.slice(2));
+
+    let parsedArgv: minimist.ParsedArgs = {
+      _: []
+    };
+
+    for (let key in parsedArgvOrigCase) {
+      parsedArgv[camelcase(key)] = parsedArgvOrigCase[key];
+    }
+
+    parsedArgv._ = parsedArgvOrigCase._.map((value) => camelcase(value));
+
+    return parsedArgv;
   }
 
   async run(argv: string[] = process.argv) {

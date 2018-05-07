@@ -10,7 +10,7 @@ describe("CudoCli", () => {
   it("can parse arguments", async () => {
     let cli = new cudoCli.CudoCli();
 
-    let mockArgv = ["pathToNode", "pathToScript", "makeBeverage", "tea", "-m", "-l", "--variety=breakfast", "--serveIn", "cup"];
+    let mockArgv = ["path-to-node", "path-to-script", "make-beverage", "tea", "-m", "-l", "--variety=breakfast", "--serve-in", "cup"];
 
     return chai.expect(cli.parseArgv(mockArgv)).deep.eq({
       "_": ["makeBeverage", "tea"],
@@ -32,7 +32,7 @@ describe("CudoCli", () => {
       }
     };
 
-    let mockArgv = ["pathToNode", "pathToScript", "makeBeverage", "tea"];
+    let mockArgv = ["path-to-node", "path-to-script", "make-beverage", "tea"];
 
     let cli = new cudoCli.CudoCli(mockActions);
 
@@ -54,7 +54,7 @@ describe("CudoCli", () => {
       }
     };
 
-    let mockArgv = ["pathToNode", "pathToScript", "makeBeverage", "tea"];
+    let mockArgv = ["path-to-node", "path-to-script", "make-beverage", "tea"];
 
     let cli = new cudoCli.CudoCli(mockActions);
 
@@ -65,12 +65,10 @@ describe("CudoCli", () => {
     return chai.expect(resultMessage).eq("Making a beverage: tea");
   });
 
-  it("throws an error when action is not specified", async () => {
-    let resultMessage = "";
-
+  it("throws an error on running an action when action is not specified", async () => {
     let mockActions: cudoCli.Actions = {};
 
-    let mockArgv = ["pathToNode", "pathToScript"];
+    let mockArgv = ["path-to-node", "path-to-script"];
 
     let cli = new cudoCli.CudoCli(mockActions);
 
@@ -79,12 +77,10 @@ describe("CudoCli", () => {
     return chai.expect(cli.runAction(parsedArgv)).eventually.rejected;
   });
 
-  it("throws an error when specified action does not exist", async () => {
-    let resultMessage = "";
-
+  it("throws an error on running an action when specified action does not exist", async () => {
     let mockActions: cudoCli.Actions = {};
 
-    let mockArgv = ["pathToNode", "pathToScript", "makeCake"];
+    let mockArgv = ["path-to-node", "path-to-script", "make-cake"];
 
     let cli = new cudoCli.CudoCli(mockActions);
 
