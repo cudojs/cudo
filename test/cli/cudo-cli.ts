@@ -13,7 +13,7 @@ describe("CudoCli", () => {
     let mockArgv = ["pathToNode", "pathToScript", "makeBeverage", "tea", "-m", "-l", "--variety=breakfast", "--serveIn", "cup"];
 
     return chai.expect(cli.parseArgv(mockArgv)).deep.eq({
-      "_": [ "makeBeverage", "tea" ],
+      "_": ["makeBeverage", "tea"],
       "m": true,
       "l": true,
       "serveIn": "cup",
