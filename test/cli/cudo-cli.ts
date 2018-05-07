@@ -13,11 +13,11 @@ describe("CudoCli", () => {
     let mockArgv = ["path-to-node", "path-to-script", "hot-beverage", "make", "-m", "-l", "--type=breakfast-tea", "--serve-in", "cup"];
 
     return chai.expect(cli.parseArgv(mockArgv)).deep.eq({
-      "_": ["hotBeverage", "make"],
-      "m": true,
-      "l": true,
-      "serveIn": "cup",
-      "type": "breakfast-tea"
+      _: ["hotBeverage", "make"],
+      m: true,
+      l: true,
+      serveIn: "cup",
+      type: "breakfast-tea"
     });
   });
 
@@ -73,7 +73,7 @@ describe("CudoCli", () => {
 
   it("throws an error on running an action when scope is not specified", async () => {
     let mockActions: cudoCli.Actions = {
-      "hotBeverage": {}
+      hotBeverage: {}
     };
 
     let mockArgv = ["path-to-node", "path-to-script"];
@@ -87,7 +87,7 @@ describe("CudoCli", () => {
 
   it("throws an error on running an action when action is not specified", async () => {
     let mockActions: cudoCli.Actions = {
-      "hotBeverage": {}
+      hotBeverage: {}
     };
 
     let mockArgv = ["path-to-node", "path-to-script", "hot-beverage"];
@@ -113,7 +113,7 @@ describe("CudoCli", () => {
 
   it("throws an error on running an action when specified action does not exist", async () => {
     let mockActions: cudoCli.Actions = {
-      "hotBeverage": {}
+      hotBeverage: {}
     };
 
     let mockArgv = ["path-to-node", "path-to-script", "hot-beverage", "prepare"];
