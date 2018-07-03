@@ -1,5 +1,13 @@
+export enum Methods {
+  delete = "delete",
+  get = "get",
+  post = "post",
+  put = "put",
+  options = "options"
+}
+
 export class Router {
-  match(path) {
+  match(method: Methods, url: string) {
 
   }
 }

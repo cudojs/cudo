@@ -2,6 +2,8 @@ import * as http from "http";
 
 import * as https from "https";
 
+import { Router } from "./router";
+
 interface AppHttpOptions {
   enabled: boolean;
 
@@ -31,17 +33,24 @@ export class App {
 
   constructor(options: AppOptions) {
     if (options.http
-      && options.http.enabled) {
-      this.httpServer = http.createServer(this.handleRequest);
+      && options.http.enabled
+      || options.https
+      && options.https.enabled) {
+      const router = new Router();
 
-      this.assignedHttpServerPort = options.http.port;
+      const handleRequest = function (req: http.ServerRequest, res: http.ServerResponse): void {
+        res.setHeader("Content-Type", "application/json");
+
+        res.end();
+      }
+
+      if (options.http
+        && options.http.enabled) {
+        this.httpServer = http.createServer(handleRequest);
+
+        this.assignedHttpServerPort = options.http.port;
+      }
     }
-  }
-
-  handleRequest(req: http.ServerRequest, res: http.ServerResponse): void {
-    res.setHeader("Content-Type", "application/json");
-
-    res.end();
   }
 
   run(): void {
