@@ -3,11 +3,15 @@ import * as http from "http";
 import * as https from "https";
 
 interface AppHttpOptions {
-  port: number;
+  enabled: boolean;
+
+  port?: number;
 }
 
 interface AppHttpsOptions {
-  port: number;
+  enabled: boolean;
+
+  port?: number;
 }
 
 export interface AppOptions {
@@ -17,26 +21,32 @@ export interface AppOptions {
 }
 
 export class App {
-  httpServer: http.Server;
+  assignedHttpServerPort: number;
 
-  httpServerPort: number;
+  assignedHttpsServerPort: number;
+
+  httpServer: http.Server;
 
   httpsServer: https.Server;
 
-  httpsServerPort: number;
-
   constructor(options: AppOptions) {
-    if (options.http) {
-      this.httpServer = http.createServer();
+    if (options.http
+      && options.http.enabled) {
+      this.httpServer = http.createServer(this.handleRequest);
 
-      this.httpServerPort = options.http.port;
+      this.assignedHttpServerPort = options.http.port;
     }
   }
 
-  run() {
-    if (this.httpServer
-      && this.httpServerPort) {
-      this.httpServer.listen(this.httpServerPort);
+  handleRequest(req: http.ServerRequest, res: http.ServerResponse): void {
+    res.setHeader("Content-Type", "application/json");
+
+    res.end();
+  }
+
+  run(): void {
+    if (this.httpServer) {
+      this.httpServer.listen(this.assignedHttpServerPort);
     }
   }
 }
