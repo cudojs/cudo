@@ -19,7 +19,9 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "dependencies": {},
+  "dependencies": {
+    "path-to-regexp": "^2.2.1"
+  },
   "devDependencies": {
     "@types/chai": "^4.1.4",
     "@types/chai-as-promised": "^7.1.0",
