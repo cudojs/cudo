@@ -23,13 +23,13 @@ export interface AppOptions {
 }
 
 export class App {
-  assignedHttpServerPort: number;
+  private assignedHttpServerPort: number;
 
-  assignedHttpsServerPort: number;
+  private assignedHttpsServerPort: number;
 
-  httpServer: http.Server;
+  public httpServer: http.Server;
 
-  httpsServer: https.Server;
+  public httpsServer: https.Server;
 
   constructor(options: AppOptions) {
     if (options.http
@@ -53,7 +53,7 @@ export class App {
     }
   }
 
-  run(): void {
+  public run(): void {
     if (this.httpServer) {
       this.httpServer.listen(this.assignedHttpServerPort);
     }
