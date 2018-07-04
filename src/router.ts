@@ -40,6 +40,22 @@ export class Router {
   }
 
   public remove(route: Route<any>) {
+    let removeIndex = -1;
 
+    for(let i = 0; i < this.storedRoutes.length; i++) {
+      if (this.storedRoutes[i].method == route.method
+        && this.storedRoutes[i].path == route.path) {
+          removeIndex = i;
+  
+          break;
+        }
+    }
+
+    if (removeIndex > -1) {
+      this.storedRoutes.splice(removeIndex, 1);
+    }
+    else {
+      throw new Error("Cannot remove a route, match not found for method `" + route.method + "` and path `" + route.path + "`");
+    }
   }
 }
