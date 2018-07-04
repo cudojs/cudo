@@ -31,12 +31,16 @@ export class App {
 
   public httpsServer: https.Server;
 
+  public router: Router;
+
   constructor(options: AppOptions) {
     if (options.http
       && options.http.enabled
       || options.https
       && options.https.enabled) {
       const router = new Router();
+
+      this.router = router;
 
       const handleRequest = function (req: http.ServerRequest, res: http.ServerResponse): void {
         res.setHeader("Content-Type", "application/json");
@@ -49,6 +53,8 @@ export class App {
         this.httpServer = http.createServer(handleRequest);
 
         this.assignedHttpServerPort = options.http.port;
+
+        Object.freeze(this.assignedHttpServerPort);
       }
     }
   }
