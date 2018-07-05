@@ -4,11 +4,13 @@
     "declaration": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "outDir": "dist",
+    "outDir": "lib",
     "removeComments": true,
-    "target": "es6"
+    "target": "es6",
+    "sourceMap": true
   },
   "include": [
-    "src"
+    "src",
+    "test"
   ]
 }

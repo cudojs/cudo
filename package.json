@@ -37,26 +37,21 @@
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
     "rimraf": "^2.6.2",
-    "source-map-support": "^0.5.6",
-    "ts-node": "^6.2.0",
     "tslint": "^5.10.0",
     "typescript": "^2.9.2"
   },
   "scripts": {
-    "build": "npm run test && tsc",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prebuild": "rimraf ./dist",
-    "test": "nyc mocha"
+    "build": "tsc",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "prebuild": "rimraf ./lib",
+    "test": "nyc mocha ./lib/test"
   },
   "nyc": {
     "include": [
-      "src/**/*.ts"
+      "lib/src/**/*"
     ],
     "extension": [
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register"
+      ".js"
     ],
     "reporter": [
       "lcov",
