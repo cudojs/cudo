@@ -4,10 +4,6 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import * as http from "http";
 
-import * as requestPromiseNative from "request-promise-native";
-
-import { AddressInfo } from "net";
-
 import { App, AppOptions } from "../src/app";
 
 chai.use(chaiAsPromised);
@@ -106,23 +102,5 @@ describe("App", () => {
     app.run();
 
     return chai.expect(app.httpServer.address()).property("port", httpPort);
-  });
-
-  it("if http is enabled, while running, responds to incoming http requests", () => {
-    const options: AppOptions = {
-      http: {
-        enabled: true
-      }
-    };
-
-    const app = new App(options);
-
-    testAppInstances.push(app);
-
-    app.run();
-
-    let address = <AddressInfo>app.httpServer.address();
-
-    return chai.expect(requestPromiseNative("http://localhost:" + address.port)).eventually.fulfilled;
   });
 });
