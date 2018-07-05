@@ -4,14 +4,19 @@ import * as chaiAsPromised from "chai-as-promised";
 
 import * as http from "http";
 
+import { Socket } from "net";
+
 import { App, AppOptions } from "../src/app";
+
+import { Methods, Route } from "../src/router";
 
 chai.use(chaiAsPromised);
 
-let testAppInstances = [];
+let testRunningAppInstances = [];
 
 after(() => {
-  testAppInstances.map((appInstance) => {
+  // Close collected test app instances, so the process can exit.
+  testRunningAppInstances.map((appInstance) => {
     if (appInstance.httpServer
       && appInstance.httpServer.close) {
       appInstance.httpServer.close();
@@ -28,8 +33,6 @@ describe("App", () => {
   it("if http options are missing, does not create an http server", () => {
     const app = new App({});
 
-    testAppInstances.push(app);
-
     return chai.expect(app.httpServer).undefined;
   });
 
@@ -41,8 +44,6 @@ describe("App", () => {
     };
 
     const app = new App(options);
-
-    testAppInstances.push(app);
 
     return chai.expect(app.httpServer).undefined;
   });
@@ -56,15 +57,13 @@ describe("App", () => {
 
     const app = new App(options);
 
-    testAppInstances.push(app);
-
     return chai.expect(app.httpServer).instanceof(http.Server);
   });
 
   it("on run, if no options are specified, passes without errors", () => {
     const app = new App({});
 
-    testAppInstances.push(app);
+    testRunningAppInstances.push(app);
 
     return chai.expect(app.run()).undefined;
   });
@@ -78,7 +77,7 @@ describe("App", () => {
 
     const app = new App(options);
 
-    testAppInstances.push(app);
+    testRunningAppInstances.push(app);
 
     app.run();
 
@@ -97,10 +96,78 @@ describe("App", () => {
 
     const app = new App(options);
 
-    testAppInstances.push(app);
+    testRunningAppInstances.push(app);
 
     app.run();
 
     return chai.expect(app.httpServer.address()).property("port", httpPort);
+  });
+  
+  it("on handling a request, if a route was matched and no errors were thrown, set response code to 200", () => {
+    interface Cake {};
+
+    const options: AppOptions = {
+      http: {
+        enabled: true
+      }
+    };
+
+    // Extend App class to get access to protected handleRequest method.
+    class TestApp extends App {
+      public testHandleRequest = this.handleRequest;
+    }
+
+    const app = new TestApp(options);
+
+    const postCakeHandler = () => { return {}; };
+
+    const postCakeRoutePath = "/cakes";
+
+    let postCakeRoute: Route<Cake> = {
+      handler: postCakeHandler,
+      method: Methods.post,
+      path: postCakeRoutePath
+    }
+
+    app.router.add(postCakeRoute);
+
+    let mockRequest = new http.IncomingMessage(new Socket());
+
+    mockRequest.method = "POST";
+
+    mockRequest.url = "/cakes";
+
+    let mockResponse = new http.ServerResponse(new http.IncomingMessage(new Socket()));
+
+    app.testHandleRequest(mockRequest, mockResponse);
+
+    return chai.expect(mockResponse.statusCode).eq(200);
+  });
+
+  it("on handling a request, if a route is not matched, return 404", () => {
+    const options: AppOptions = {
+      http: {
+        enabled: true
+      }
+    };
+
+    // Extend App class to get access to protected handleRequest method.
+    class TestApp extends App {
+      public testHandleRequest = this.handleRequest;
+    }
+
+    const app = new TestApp(options);
+
+    let mockRequest = new http.IncomingMessage(new Socket());
+
+    mockRequest.method = "POST";
+
+    mockRequest.url = "/cakes";
+
+    let mockResponse = new http.ServerResponse(new http.IncomingMessage(new Socket()));
+
+    app.testHandleRequest(mockRequest, mockResponse);
+
+    return chai.expect(mockResponse.statusCode).eq(404);
   });
 });

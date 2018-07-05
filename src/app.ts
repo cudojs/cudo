@@ -2,7 +2,9 @@ import * as http from "http";
 
 import * as https from "https";
 
-import { Router } from "./router";
+import * as url from "url";
+
+import { Router, Route } from "./router";
 
 interface AppHttpOptions {
   enabled: boolean;
@@ -33,7 +35,7 @@ export class App {
 
   public router: Router;
 
-  protected handleRequest: (req: http.ServerRequest, res: http.ServerResponse) => void;
+  protected handleRequest: (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
   constructor(options: AppOptions) {
     if (options.http
@@ -46,6 +48,17 @@ export class App {
 
       this.handleRequest = function (req, res) {
         res.setHeader("Content-Type", "application/json");
+
+        let requestUrl = url.parse(req.url);
+
+        let route: Route<any>;
+
+        try {
+          route = router.match(req.method.toLowerCase(), requestUrl.pathname);
+        }
+        catch (ex) {
+          res.statusCode = ex.httpStatusCode;
+        }
 
         res.end();
       }
