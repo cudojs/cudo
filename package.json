@@ -42,7 +42,7 @@
     "build": "tsc",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "prebuild": "rimraf ./lib",
-    "test": "nyc mocha ./lib/test"
+    "test": "npm run build && nyc mocha ./lib/test"
   },
   "nyc": {
     "include": [
