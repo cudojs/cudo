@@ -33,6 +33,8 @@ export class App {
 
   public router: Router;
 
+  protected handleRequest: (req: http.ServerRequest, res: http.ServerResponse) => void;
+
   constructor(options: AppOptions) {
     if (options.http
       && options.http.enabled
@@ -42,7 +44,7 @@ export class App {
 
       this.router = router;
 
-      const handleRequest = function (req: http.ServerRequest, res: http.ServerResponse): void {
+      this.handleRequest = function (req, res) {
         res.setHeader("Content-Type", "application/json");
 
         res.end();
@@ -50,7 +52,7 @@ export class App {
 
       if (options.http
         && options.http.enabled) {
-        this.httpServer = http.createServer(handleRequest);
+        this.httpServer = http.createServer(this.handleRequest);
 
         this.assignedHttpServerPort = options.http.port;
 
