@@ -9,7 +9,7 @@ import { Methods, Route, Router } from "../src/router";
 chai.use(chaiAsPromised);
 
 describe("Router", () => {
-  it("On adding a route, adds regex pattern and params and stores the route", () => {
+  it("On adding a route, adds regex pattern and params and stores the route according to the method", () => {
     interface Cake {}
 
     class TestRouter extends Router {
@@ -18,7 +18,7 @@ describe("Router", () => {
 
     const router = new TestRouter();
 
-    const getCakeHandler = () => [];
+    const getCakeHandler = () => { return {}; };
 
     const getCakeRoutePath = "/cakes/:cakeId(\\d+)";
 
@@ -42,7 +42,12 @@ describe("Router", () => {
       pattern: expectedGetCakeRoutePattern
     }
 
-    return chai.expect(router.testStoredRoutes).deep.equal([expectedGetCakeRoute]);
+    return chai.expect(router.testStoredRoutes).deep.equal({
+      delete: [],
+      get: [expectedGetCakeRoute], 
+      post: [],
+      put: [],
+    });
   });
 
   it("On removing a route, removes the route from stored routes if a match is found for the method and path", () => {
@@ -54,7 +59,7 @@ describe("Router", () => {
 
     const router = new TestRouter();
 
-    const getCakeHandler = () => [];
+    const getCakeHandler = () => { return {}; };
 
     const getCakeRoutePath = "/cakes/:cakeId(\\d+)";
 
@@ -66,7 +71,7 @@ describe("Router", () => {
 
     router.add(getCakeRoute);
 
-    const postCakeHandler = () => [];
+    const postCakeHandler = () => { return {}; };
 
     const postCakeRoutePath = "/cakes";
 
@@ -97,13 +102,18 @@ describe("Router", () => {
 
     router.remove(getCakeRouteToRemove);
 
-    return chai.expect(router.testStoredRoutes).deep.equal([expectedPostCakeRoute]);
+    return chai.expect(router.testStoredRoutes).deep.equal({
+      delete: [],
+      get: [],
+      post: [expectedPostCakeRoute],
+      put: []
+    });
   });
 
   it("On removing a route, throws an error if a match is not found for the method and path", () => {
     interface Cake {}
 
-    const router  = new Router();
+    const router = new Router();
 
     let postCakeRouteToRemove: Route<Cake> = {
       method: Methods.post,
@@ -111,5 +121,93 @@ describe("Router", () => {
     }
 
     return chai.expect(router.remove.bind(router, postCakeRouteToRemove)).throw("Cannot remove a route, match not found for method `" + postCakeRouteToRemove.method + "` and path `" + postCakeRouteToRemove.path + "`");
+  });
+
+  it("On matching a route, throws an error if unsupported method is used", () => {
+    const router = new Router();
+
+    return chai.expect(router.match.bind(router, "noSuchMethod", "/cakes")).throw("Method not allowed");
+  });
+
+  it("On matching a route, throws an error if a match has not been found", () => {
+    const router = new Router();
+
+    return chai.expect(router.match.bind(router, "get", "/cakes")).throw("Not found");
+  });
+
+  it("On matching a route, returns a route if a match has been found", () => {
+    interface Cake {}
+
+    const router = new Router();
+
+    const getCakesHandler = () => [];
+
+    const getCakesRoutePath = "/cakes";
+
+    let getCakesRoute: Route<Cake[]> = {
+      handler: getCakesHandler,
+      method: Methods.get,
+      path: getCakesRoutePath
+    }
+
+    router.add(getCakesRoute);
+
+    let expectedGetCakesRouteParams = [];
+
+    let expectedGetCakesRoutePattern = pathToRegexp(getCakesRoutePath, expectedGetCakesRouteParams);
+
+    let expectedGetCakesRoute: Route<Cake[]> = {
+      handler: getCakesHandler,
+      method: Methods.get,
+      params: expectedGetCakesRouteParams,
+      path: getCakesRoutePath,
+      pattern: expectedGetCakesRoutePattern
+    }
+
+    return chai.expect(router.match("get", "/cakes")).deep.eq(expectedGetCakesRoute);
+  });
+
+  it("On matching a route, returns the latest added matching route if more than one route is matched", () => {
+    interface Cake {}
+
+    const router = new Router();
+
+    const getCakesHandler = () => [];
+
+    const getCakesRoutePath = "/cakes";
+
+    let getCakesRoute: Route<Cake[]> = {
+      handler: getCakesHandler,
+      method: Methods.get,
+      path: getCakesRoutePath
+    }
+
+    router.add(getCakesRoute);
+
+    const getCakesOrCakeHandler = () => [];
+
+    const getCakesOrCakeRoutePath = "/cakes/:cakeId?";
+
+    let getCakesOrCakeRoute: Route<Cake[]> = {
+      handler: getCakesOrCakeHandler,
+      method: Methods.get,
+      path: getCakesOrCakeRoutePath
+    }
+
+    router.add(getCakesOrCakeRoute);
+
+    let expectedGetCakesOrCakeRouteParams = [];
+
+    let expectedGetCakesOrCakeRoutePattern = pathToRegexp(getCakesOrCakeRoutePath, expectedGetCakesOrCakeRouteParams);
+
+    let expectedGetCakesOrCakeRoute: Route<Cake[]> = {
+      handler: getCakesOrCakeHandler,
+      method: Methods.get,
+      params: expectedGetCakesOrCakeRouteParams,
+      path: getCakesOrCakeRoutePath,
+      pattern: expectedGetCakesOrCakeRoutePattern
+    }
+
+    return chai.expect(router.match("get", "/cakes")).deep.eq(expectedGetCakesOrCakeRoute);
   });
 });
