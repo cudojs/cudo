@@ -25,14 +25,6 @@ after(() => {
 });
 
 describe("App", () => {
-  it("if no options are specified, on run, passes without errors", () => {
-    const app = new App({});
-
-    testAppInstances.push(app);
-
-    return chai.expect(app.run()).undefined;
-  });
-
   it("if http options are missing, does not create an http server", () => {
     const app = new App({});
 
@@ -69,7 +61,15 @@ describe("App", () => {
     return chai.expect(app.httpServer).instanceof(http.Server);
   });
 
-  it("if http is enabled, on run, triggers the server listening on a random available port", () => {
+  it("on run, if no options are specified, passes without errors", () => {
+    const app = new App({});
+
+    testAppInstances.push(app);
+
+    return chai.expect(app.run()).undefined;
+  });
+
+  it("on run, if http is enabled, triggers the server listening on a random available port", () => {
     const options: AppOptions = {
       http: {
         enabled: true
@@ -85,7 +85,7 @@ describe("App", () => {
     return chai.expect(app.httpServer.address()).has.property("port");
   });
 
-  it("if http is enabled and a port is specified, on run, triggers the server listening on that port", () => {
+  it("on run, if http is enabled and a port is specified, triggers the server listening on that port", () => {
     const httpPort = 22880;
 
     const options: AppOptions = {

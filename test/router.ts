@@ -9,7 +9,7 @@ import { Methods, Route, Router } from "../src/router";
 chai.use(chaiAsPromised);
 
 describe("Router", () => {
-  it("On adding a route, adds regex pattern and params and stores the route according to the method", () => {
+  it("on adding a route, adds regex pattern and params and stores the route according to the method", () => {
     interface Cake {}
 
     class TestRouter extends Router {
@@ -50,7 +50,7 @@ describe("Router", () => {
     });
   });
 
-  it("On removing a route, removes the route from stored routes if a match is found for the method and path", () => {
+  it("on removing a route, removes the route from stored routes if a match is found for the method and path", () => {
     interface Cake {}
 
     class TestRouter extends Router {
@@ -110,7 +110,7 @@ describe("Router", () => {
     });
   });
 
-  it("On removing a route, throws an error if a match is not found for the method and path", () => {
+  it("on removing a route, throws an error if a match is not found for the method and path", () => {
     interface Cake {}
 
     const router = new Router();
@@ -123,19 +123,19 @@ describe("Router", () => {
     return chai.expect(router.remove.bind(router, postCakeRouteToRemove)).throw("Cannot remove a route, match not found for method `" + postCakeRouteToRemove.method + "` and path `" + postCakeRouteToRemove.path + "`");
   });
 
-  it("On matching a route, throws an error if unsupported method is used", () => {
+  it("on matching a route, throws an error if unsupported method is used", () => {
     const router = new Router();
 
     return chai.expect(router.match.bind(router, "noSuchMethod", "/cakes")).throw("Method not allowed");
   });
 
-  it("On matching a route, throws an error if a match has not been found", () => {
+  it("on matching a route, throws an error if a match has not been found", () => {
     const router = new Router();
 
     return chai.expect(router.match.bind(router, "get", "/cakes")).throw("Not found");
   });
 
-  it("On matching a route, returns a route if a match has been found", () => {
+  it("on matching a route, returns a route if a match has been found", () => {
     interface Cake {}
 
     const router = new Router();
@@ -167,7 +167,7 @@ describe("Router", () => {
     return chai.expect(router.match("get", "/cakes")).deep.eq(expectedGetCakesRoute);
   });
 
-  it("On matching a route, returns the latest added matching route if more than one route is matched", () => {
+  it("on matching a route, returns the latest added matching route if more than one route is matched", () => {
     interface Cake {}
 
     const router = new Router();
