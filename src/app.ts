@@ -47,7 +47,7 @@ export class App {
       this.router = router;
 
       this.handleRequest = function (req, res) {
-        res.setHeader("content-type", "application/json");
+        res.setHeader("Content-Type", "application/json");
 
         let requestUrl = url.parse(req.url);
 
