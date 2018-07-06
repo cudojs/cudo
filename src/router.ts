@@ -5,6 +5,8 @@ interface StoredRoutes {
 
   get: Route<any>[];
 
+  patch: Route<any>[];
+
   post: Route<any>[];
 
   put: Route<any>[];
@@ -13,7 +15,9 @@ interface StoredRoutes {
 class RouteMatchingError extends Error {
   public httpStatusCode: number;
 
-  constructor(message, httpStatusCode) {
+  public headers?: { [key: string]: string; };
+
+  constructor(message, httpStatusCode, headers?) {
     super(message);
 
     if (Error.captureStackTrace) {
@@ -21,6 +25,8 @@ class RouteMatchingError extends Error {
     }
 
     this.httpStatusCode = httpStatusCode;
+
+    this.headers = headers;
   }
 }
 
@@ -43,6 +49,9 @@ export interface Route<T> {
 export enum Methods {
   delete = "delete",
   get = "get",
+  head = "head",
+  options = "options",
+  patch = "patch",
   post = "post",
   put = "put"
 }
@@ -51,6 +60,7 @@ export class Router {
   protected storedRoutes: StoredRoutes = {
     delete: [],
     get: [],
+    patch: [],
     post: [],
     put: [],
   };
@@ -64,23 +74,65 @@ export class Router {
     this.storedRoutes[route.method].splice(0, 0, route);
   }
 
+  // FIXME: Add correct return values for HEAD and OPTIONS.
+  // FIXME: Adjust return values for authentication.
   public match(method: string, path: string): Route<any> {
     if (!Methods[method]) {
-      throw new RouteMatchingError("Method not allowed", 405);
+      throw new RouteMatchingError("Not implemented", 501);
     }
 
     let route;
 
-    for (let i = 0; i < this.storedRoutes[method].length; i++) {
-      if (this.storedRoutes[method][i].pattern.test(path)) {
-        route = this.storedRoutes[method][i];
+    route = this.matchInMethodArray(this.storedRoutes[method], path);
 
-        break;
+    // If no match is found, check if path is matched for other methods.
+    let matchedOtherMethods = [];
+
+    if (!route) {
+      let otherMethods = Object.keys(this.storedRoutes);
+
+      let requestMethodIndex = otherMethods.indexOf(method);
+
+      otherMethods.splice(requestMethodIndex, 1);
+
+      for (let otherMethod of otherMethods) {
+        if (this.matchInMethodArray(this.storedRoutes[otherMethod], path)) {
+          matchedOtherMethods.push(otherMethod);
+        }
+      }
+
+      if (matchedOtherMethods.length > 0) {
+        // Add OPTIONS by default.
+        matchedOtherMethods.push("options");
+
+        // Add HEAD if GET is present.
+        if (matchedOtherMethods.indexOf("get") > -1) {
+          matchedOtherMethods.push("head");
+        }
+
+        let allowedMethods = matchedOtherMethods.sort().join(", ").toUpperCase();
+
+        throw new RouteMatchingError("Method not allowed", 405, {
+          allow: allowedMethods
+        });
+      }
+      else {
+        throw new RouteMatchingError("Not found", 404);
       }
     }
 
-    if (!route) {
-      throw new RouteMatchingError("Not found", 404);
+    return route;
+  }
+
+  private matchInMethodArray(routes: Route<any>[], path: string) {
+    let route;
+
+    for (let i = 0; i < routes.length; i++) {
+      if (routes[i].pattern.test(path)) {
+        route = routes[i];
+
+        break;
+      }
     }
 
     return route;

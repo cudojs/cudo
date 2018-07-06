@@ -47,7 +47,7 @@ export class App {
       this.router = router;
 
       this.handleRequest = function (req, res) {
-        res.setHeader("Content-Type", "application/json");
+        res.setHeader("content-type", "application/json");
 
         let requestUrl = url.parse(req.url);
 
@@ -59,6 +59,8 @@ export class App {
         catch (ex) {
           res.statusCode = ex.httpStatusCode;
         }
+
+        // TODO: Return 501 Not implemented if handler is not set.
 
         res.end();
       }
