@@ -72,6 +72,8 @@ export class App {
 
         // TODO: Return 405 Method not allowed when routeMatchResponse returns suggestions and method is not OPTIONS.
         // TODO: Return 501 Not implemented if handler is not set.
+        // TODO: Invoke auth.
+        // TODO: Invoke handler.
 
         res.end();
       }
@@ -84,6 +86,8 @@ export class App {
 
         Object.freeze(this.assignedHttpServerPort);
       }
+
+      // TODO: Enable creating a HTTPS server.
     }
   }
 

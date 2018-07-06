@@ -27,10 +27,12 @@ enum MethodsReverse {
   PUT = "put"
 }
 
+// TODO: Add params to handler interface.
 export interface Handler<T> {
   (): T;
 }
 
+// TODO: Add security definition to route interface.
 export interface Route<T> {
   handler?: Handler<T>;
 
