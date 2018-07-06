@@ -49,17 +49,30 @@ export class App {
       this.handleRequest = function (req, res) {
         res.setHeader("Content-Type", "application/json");
 
+        let requestMethod = req.method.toLowerCase();
+
         let requestUrl = url.parse(req.url);
 
-        let route: Route<any>;
+        let routeMatchResponse;
 
         try {
-          route = router.match(req.method.toLowerCase(), requestUrl.pathname);
+          routeMatchResponse = router.match(requestMethod, requestUrl.pathname);
         }
         catch (ex) {
-          res.statusCode = ex.httpStatusCode;
+          if ("Method `" + requestMethod + "` is not supported") {
+            res.statusCode = 501;
+          }
+          else {
+            res.statusCode = 500;
+          }
         }
 
+        if (!routeMatchResponse.route
+          && !routeMatchResponse.suggestions) {
+          res.statusCode = 404;
+        }
+
+        // TODO: Return 405 Method not allowed when routeMatchResponse returns suggestions and method is not OPTIONS.
         // TODO: Return 501 Not implemented if handler is not set.
 
         res.end();

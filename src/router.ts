@@ -1,5 +1,10 @@
 import * as pathToRegexp from "path-to-regexp";
 
+interface RouteMatchResponse {
+  suggestions?: { [key: string]: Route<any>[]; };
+  route?: Route<any>;
+}
+
 interface StoredRoutes {
   delete: Route<any>[];
 
@@ -10,24 +15,6 @@ interface StoredRoutes {
   post: Route<any>[];
 
   put: Route<any>[];
-}
-
-class RouteMatchingError extends Error {
-  public httpStatusCode: number;
-
-  public headers?: { [key: string]: string; };
-
-  constructor(message, httpStatusCode, headers?) {
-    super(message);
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, RouteMatchingError);
-    }
-
-    this.httpStatusCode = httpStatusCode;
-
-    this.headers = headers;
-  }
 }
 
 export interface Handler<T> {
@@ -74,68 +61,74 @@ export class Router {
     this.storedRoutes[route.method].splice(0, 0, route);
   }
 
-  // FIXME: Add correct return values for HEAD and OPTIONS.
-  // FIXME: Adjust return values for authentication.
-  public match(method: string, path: string): Route<any> {
+  public match(method: string, path: string): RouteMatchResponse {
     if (!Methods[method]) {
-      throw new RouteMatchingError("Not implemented", 501);
+      throw new Error("Method `" + method + "` is not supported");
     }
 
-    let route;
+    // Treat all HEAD requests as GET.
+    if (method == Methods.head) {
+      method = Methods.get;
+    }
 
-    route = this.matchInMethodArray(this.storedRoutes[method], path);
+    let matchResponse: RouteMatchResponse = {};
 
-    // If no match is found, check if path is matched for other methods.
-    let matchedOtherMethods = [];
+    let routes = [];
 
-    if (!route) {
-      let otherMethods = Object.keys(this.storedRoutes);
+    // Look for matching route for specified method, unless the method is OPTIONS,
+    // which does not have stored routes.
+    if (method != Methods.options) {
+      routes = this.matchInMethodArray(this.storedRoutes[method], path);
+    }
 
-      let requestMethodIndex = otherMethods.indexOf(method);
+    if (routes.length > 0) {
+      matchResponse.route = routes.pop();
+    }
+    else {
+      // If no matching route was found, look for suggestions of other routes matching 
+      // the path, but corresponding to other methods.
+      let suggestions = {};
 
-      otherMethods.splice(requestMethodIndex, 1);
+      let suggestionsCount = 0;
 
-      for (let otherMethod of otherMethods) {
-        if (this.matchInMethodArray(this.storedRoutes[otherMethod], path)) {
-          matchedOtherMethods.push(otherMethod);
+      let methodKeys = Object.keys(this.storedRoutes);
+
+      let requestMethodIndex = methodKeys.indexOf(method);
+
+      methodKeys.splice(requestMethodIndex, 1);
+
+      for (let methodKey of methodKeys) {
+        let methodSuggestions = this.matchInMethodArray(this.storedRoutes[methodKey], path, true);
+
+        if (methodSuggestions.length > 0) {
+          suggestions[methodKey] = methodSuggestions;
+
+          suggestionsCount++;
         }
       }
 
-      if (matchedOtherMethods.length > 0) {
-        // Add OPTIONS by default.
-        matchedOtherMethods.push("options");
-
-        // Add HEAD if GET is present.
-        if (matchedOtherMethods.indexOf("get") > -1) {
-          matchedOtherMethods.push("head");
-        }
-
-        let allowedMethods = matchedOtherMethods.sort().join(", ").toUpperCase();
-
-        throw new RouteMatchingError("Method not allowed", 405, {
-          allow: allowedMethods
-        });
-      }
-      else {
-        throw new RouteMatchingError("Not found", 404);
+      if (suggestionsCount > 0) {
+        matchResponse.suggestions = suggestions;
       }
     }
 
-    return route;
+    return matchResponse;
   }
 
-  private matchInMethodArray(routes: Route<any>[], path: string) {
-    let route;
+  private matchInMethodArray(routes: Route<any>[], path: string, continueAfterMatch: boolean = false): Route<any>[] {
+    let matchedRoutes = [];
 
     for (let i = 0; i < routes.length; i++) {
       if (routes[i].pattern.test(path)) {
-        route = routes[i];
+        matchedRoutes.push(routes[i]);
 
-        break;
+        if (!continueAfterMatch) {
+          break;
+        }
       }
     }
 
-    return route;
+    return matchedRoutes;
   }
 
   public remove(route: Route<any>) {
