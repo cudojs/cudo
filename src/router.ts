@@ -17,6 +17,16 @@ interface StoredRoutes {
   put: Route<any>[];
 }
 
+enum MethodsReverse {
+  DELETE = "delete",
+  GET = "get",
+  HEAD = "head",
+  OPTIONS = "options",
+  PATCH = "patch",
+  POST = "post",
+  PUT = "put"
+}
+
 export interface Handler<T> {
   (): T;
 }
@@ -34,13 +44,13 @@ export interface Route<T> {
 }
 
 export enum Methods {
-  delete = "delete",
-  get = "get",
-  head = "head",
-  options = "options",
-  patch = "patch",
-  post = "post",
-  put = "put"
+  delete = "DELETE",
+  get = "GET",
+  head = "HEAD",
+  options = "OPTIONS",
+  patch = "PATCH",
+  post = "POST",
+  put = "PUT"
 }
 
 export class Router {
@@ -57,12 +67,14 @@ export class Router {
 
     route.pattern = pathToRegexp(route.path, route.params);
 
+    let storedRoutesKey = MethodsReverse[route.method];
+
     // Store routes in reverse order, to allow quick matching of latest added route.
-    this.storedRoutes[route.method].splice(0, 0, route);
+    this.storedRoutes[storedRoutesKey].splice(0, 0, route);
   }
 
   public match(method: string, path: string): RouteMatchResponse {
-    if (!Methods[method]) {
+    if (!MethodsReverse[method]) {
       throw new Error("Method `" + method + "` is not supported");
     }
 
@@ -78,7 +90,7 @@ export class Router {
     // Look for matching route for specified method, unless the method is OPTIONS,
     // which does not have stored routes.
     if (method != Methods.options) {
-      routes = this.matchInMethodArray(this.storedRoutes[method], path);
+      routes = this.matchForStoredRoutesKey(this.storedRoutes[MethodsReverse[method]], path);
     }
 
     if (routes.length > 0) {
@@ -91,17 +103,17 @@ export class Router {
 
       let suggestionsCount = 0;
 
-      let methodKeys = Object.keys(this.storedRoutes);
+      let storedRoutesKeys = Object.keys(this.storedRoutes);
 
-      let requestMethodIndex = methodKeys.indexOf(method);
+      let requestMethodIndex = storedRoutesKeys.indexOf(Methods[method]);
 
-      methodKeys.splice(requestMethodIndex, 1);
+      storedRoutesKeys.splice(requestMethodIndex, 1);
 
-      for (let methodKey of methodKeys) {
-        let methodSuggestions = this.matchInMethodArray(this.storedRoutes[methodKey], path, true);
+      for (let storedRoutesKey of storedRoutesKeys) {
+        let methodSuggestions = this.matchForStoredRoutesKey(this.storedRoutes[storedRoutesKey], path, true);
 
         if (methodSuggestions.length > 0) {
-          suggestions[methodKey] = methodSuggestions;
+          suggestions[storedRoutesKey] = methodSuggestions;
 
           suggestionsCount++;
         }
@@ -115,7 +127,7 @@ export class Router {
     return matchResponse;
   }
 
-  private matchInMethodArray(routes: Route<any>[], path: string, continueAfterMatch: boolean = false): Route<any>[] {
+  private matchForStoredRoutesKey(routes: Route<any>[], path: string, continueAfterMatch: boolean = false): Route<any>[] {
     let matchedRoutes = [];
 
     for (let i = 0; i < routes.length; i++) {
@@ -136,10 +148,12 @@ export class Router {
 
     let removeIndex = -1;
 
-    if (this.storedRoutes[route.method]) {
-      for (let i = 0; i < this.storedRoutes[route.method].length; i++) {
-        if (this.storedRoutes[route.method][i].path == route.path) {
-          removeFromMethod = route.method;
+    let storedRoutesKey = MethodsReverse[route.method];
+
+    if (this.storedRoutes[storedRoutesKey]) {
+      for (let i = 0; i < this.storedRoutes[storedRoutesKey].length; i++) {
+        if (this.storedRoutes[storedRoutesKey][i].path == route.path) {
+          removeFromMethod = storedRoutesKey;
 
           removeIndex = i;
 

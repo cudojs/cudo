@@ -126,7 +126,7 @@ describe("Router", () => {
   it("on matching a route, if a match has not been found for the path specified, returns an empty match response", () => {
     const router = new Router();
 
-    return chai.expect(router.match("get", "/cakes")).deep.eq({});
+    return chai.expect(router.match("GET", "/cakes")).deep.eq({});
   });
 
   it("on matching a route, if a match has been found for the path specified, but the method does not match, returns a match response with a list of route suggestions grouped by method", () => {
@@ -158,7 +158,7 @@ describe("Router", () => {
 
     router.add(deleteCakesRoute);
 
-    return chai.expect(router.match("post", "/cakes")).deep.eq({
+    return chai.expect(router.match("POST", "/cakes")).deep.eq({
       suggestions: {
         delete: [deleteCakesRoute],
         get: [getCakesRoute]
@@ -166,7 +166,7 @@ describe("Router", () => {
     });
   });
 
-  it("on matching a route, if method is `options`, return a match response with a list of suggested routes grouped by method", () => {
+  it("on matching a route, if method is `OPTIONS`, return a match response with a list of suggested routes grouped by method", () => {
     interface Cake { }
 
     const router = new Router();
@@ -195,7 +195,7 @@ describe("Router", () => {
 
     router.add(deleteCakesRoute);
 
-    return chai.expect(router.match("options", "/cakes")).deep.eq({
+    return chai.expect(router.match("OPTIONS", "/cakes")).deep.eq({
       suggestions: {
         delete: [deleteCakesRoute],
         get: [getCakesRoute]
@@ -203,7 +203,7 @@ describe("Router", () => {
     });
   });
 
-  it("on matching a route, if method is `head` and a corresponding get route does not exist, return a match response with a list of suggested routes grouped by method", () => {
+  it("on matching a route, if method is `HEAD` and a corresponding get route does not exist, return a match response with a list of suggested routes grouped by method", () => {
     interface Cake { }
 
     const router = new Router();
@@ -220,14 +220,14 @@ describe("Router", () => {
 
     router.add(deleteCakesRoute);
 
-    return chai.expect(router.match("head", "/cakes")).deep.eq({
+    return chai.expect(router.match("HEAD", "/cakes")).deep.eq({
       suggestions: {
         delete: [deleteCakesRoute]
       }
     });
   });
 
-  it("on matching a route, if method is `head` and a corresponding get route exists, return a match response with the corresponding get route", () => {
+  it("on matching a route, if method is `HEAD` and a corresponding get route exists, return a match response with the corresponding get route", () => {
     interface Cake { }
 
     const router = new Router();
@@ -256,7 +256,7 @@ describe("Router", () => {
 
     router.add(deleteCakesRoute);
 
-    return chai.expect(router.match("head", "/cakes")).deep.eq({
+    return chai.expect(router.match("HEAD", "/cakes")).deep.eq({
       route: getCakesRoute
     });
   });
@@ -290,7 +290,7 @@ describe("Router", () => {
       pattern: expectedGetCakesRoutePattern
     }
 
-    return chai.expect(router.match("get", "/cakes")).deep.eq({ route: expectedGetCakesRoute });
+    return chai.expect(router.match("GET", "/cakes")).deep.eq({ route: expectedGetCakesRoute });
   });
 
   it("on matching a route, if more than one route is matched, returns a match response with the latest added matching route", () => {
@@ -334,6 +334,6 @@ describe("Router", () => {
       pattern: expectedGetCakesOrCakeRoutePattern
     }
 
-    return chai.expect(router.match("get", "/cakes")).deep.eq({ route: expectedGetCakesOrCakeRoute });
+    return chai.expect(router.match("GET", "/cakes")).deep.eq({ route: expectedGetCakesOrCakeRoute });
   });
 });

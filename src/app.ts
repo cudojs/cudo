@@ -49,17 +49,15 @@ export class App {
       this.handleRequest = function (req, res) {
         res.setHeader("Content-Type", "application/json");
 
-        let requestMethod = req.method.toLowerCase();
-
         let requestUrl = url.parse(req.url);
 
         let routeMatchResponse;
 
         try {
-          routeMatchResponse = router.match(requestMethod, requestUrl.pathname);
+          routeMatchResponse = router.match(req.method, requestUrl.pathname);
         }
         catch (ex) {
-          if ("Method `" + requestMethod + "` is not supported") {
+          if ("Method `" + req.method + "` is not supported") {
             res.statusCode = 501;
           }
           else {
